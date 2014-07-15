@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Tue Jul 15 15:23:11 2014 (+0200)
+# Last-Updated: Tue Jul 15 17:29:31 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 716
+#     Update #: 828
 #
 
 import sys
@@ -23,6 +23,12 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
                              QFrame, QSizePolicy, QSlider, QTreeView)
 from PyQt5.QtGui import QImage, QPixmap, QColor, QIcon
 
+class EmittingStream(QtCore.QObject):
+    textWritten = QtCore.pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+
 class VideoThread(QtCore.QThread):
     def __init__(self, mw):
         super(VideoThread, self).__init__(mw)
@@ -32,38 +38,36 @@ class VideoThread(QtCore.QThread):
         self.mutex = QtCore.QMutex()
 
     def stop(self):
-        print "stopped"
+        """Stop video thread.
+        """
         with QtCore.QMutexLocker(self.mutex):
             self.stopped = True
 
     def clean(self):
+        """Clean video thread.
+        """
         self.wait()
         del self.capture
         self.capture = None
 
-    def run(self):
-        print "Main application thread is : ", self.thread().currentThreadId()
-        with QtCore.QMutexLocker(self.mutex):
-            self.stopped = False
-        mode = self.mw.getSourceMode()
-        if mode == self.mw.SOURCE_VIDEO:
-            path = self.mw.sourcePath.text()
-            if not path:
-                print '[Error] File path is empty'
-                return
-        elif mode == self.mw.SOURCE_CAMERA:
-            path = 0
+    def main(self, mode, path):
+        """Main loop.
+        """
         while True:
             if self.stopped:
                 break
             self.capture = cv2.VideoCapture(path)
             fps = self.capture.get(cv2.cv.CV_CAP_PROP_FPS)
 
+            if not self.capture.isOpened():
+                print "[Error] Couldn't read movie file {}".format(path)
+                break
             while self.capture.isOpened():
                 if self.stopped:
                     break
                 ret, frame = self.capture.read()
                 if frame is None:
+                    self.stop()
                     break
                 if mode == self.mw.SOURCE_CAMERA:
                     cv2.flip(frame, 1, frame)
@@ -74,6 +78,23 @@ class VideoThread(QtCore.QThread):
 
                 if mode == self.mw.SOURCE_VIDEO:
                     time.sleep(1. / fps)
+
+    def run(self):
+        """Method Override.
+        """
+        with QtCore.QMutexLocker(self.mutex):
+            self.stopped = False
+
+        mode = self.mw.getSourceMode()
+        if mode == self.mw.SOURCE_VIDEO:
+            path = self.mw.sourcePath.text()
+            if not path:
+                print '[Error] File path is empty'
+                return
+        elif mode == self.mw.SOURCE_CAMERA:
+            path = 0
+
+        self.main(mode, path)
 
 
 class Window(QWidget):
@@ -105,7 +126,11 @@ class Window(QWidget):
 
         self.initUI()
 
+        sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
         self.videoThread = VideoThread(self)
+
+    def __del__(self):
+        sys.stdout = sys.__stdout__
 
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Escape:
@@ -120,8 +145,7 @@ class Window(QWidget):
         height, width = imageBGR.shape[:2]
         bytesPerLine = 3 * width
 
-        imageRGB = cv2.cvtColor(imageBGR, cv2.COLOR_BGR2RGB)
-        qimg = QImage(imageRGB.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qimg = QImage(imageBGR.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
         return QPixmap.fromImage(qimg)
 
     def fitImageToScreen(self, pixmap):
@@ -141,6 +165,8 @@ class Window(QWidget):
         return QIcon(pixmap)
 
     def displayImage(self, pixmap):
+        """Display 'pixmap' in 'mediaLabel'.
+        """
         pixmap = self.fitImageToScreen(pixmap)
         self.mediaLabel.setPixmap(pixmap)
         self.mediaLabel.setFixedSize(pixmap.size())
@@ -164,24 +190,43 @@ class Window(QWidget):
         return img
 
     def displayMedia(self, path):
+        """Load and display media.
+        """
         sourceMode = self.getSourceMode()
         if self.videoThread.isRunning():
             self.videoThread.stop()
         self.videoThread.clean()
         if sourceMode == self.SOURCE_IMAGE:
-            img = self.readImage(path)
+            try:
+                img = self.readImage(path)
+            except (OSError, urllib2.HTTPError) as err:
+                print err
+                return
             pixmap = self.np2Qt(img)
             self.displayImage(pixmap)
         elif sourceMode == self.SOURCE_VIDEO or sourceMode == self.SOURCE_CAMERA:
             self.videoThread.start()
 
     def getSourceMode(self):
+        """Return the current source mode.
+        """
         return self.__sourceModes[self.sourceCBox.currentIndex()]
 
     ########################################################
     # Signals handlers
 
-    def run(self):
+    def normalOutputWritten(self, text):
+        """Append text to debug infos.
+        """
+        cursor = self.debugText.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.insertText(text)
+        self.debugText.setTextCursor(cursor)
+        QApplication.processEvents()
+
+    def refresh(self):
+        """Refresh with current media.
+        """
         self.displayMedia(self.sourcePath.text())
 
     def loadMedia(self):
@@ -205,6 +250,7 @@ class Window(QWidget):
         if self.__sourceModes[index] == self.SOURCE_CAMERA:
             self.sourcePath.hide()
             self.sourcePathButton.hide()
+            self.displayMedia(self.sourcePath.text())
         else:
             self.sourcePath.show()
             self.sourcePathButton.show()
@@ -249,6 +295,16 @@ class Window(QWidget):
         if focusedWidget:
             focusedWidget.clearFocus()
 
+    def toggleDebugInfo(self, pressed):
+        """Toggle debug infos widget.
+        """
+        if pressed:
+            self.debugText.show()
+            self.showDetails.setText(self.tr('Details <<<'))
+        else:
+            self.debugText.hide()
+            self.showDetails.setText(self.tr('Details >>>'))
+
     ########################################################
     # Widgets
 
@@ -268,12 +324,22 @@ class Window(QWidget):
         self.sourcePathButton = QPushButton('...')
         self.sourcePathButton.clicked.connect(self.loadMedia)
 
+        refreshButton = QPushButton('')
+        refreshButton.setIcon(QIcon('assets/refresh.png'))
+        refreshButton.setIconSize(QtCore.QSize(20, 20))
+        refreshButton.setMinimumSize(QtCore.QSize(20, 20))
+        refreshButton.setMaximumSize(QtCore.QSize(20, 20))
+        refreshButton.setStyleSheet("QPushButton { border: none; }"
+                                "QPushButton:pressed { border: 1px solid gray; background-color: #aaa; }")
+        refreshButton.clicked.connect(self.refresh)
+
         self.sourceCBox.setCurrentIndex(0)
 
         hbox.addWidget(sourceLabel)
         hbox.addWidget(self.sourceCBox)
         hbox.addWidget(self.sourcePath)
         hbox.addWidget(self.sourcePathButton)
+        hbox.addWidget(refreshButton)
         hbox.setAlignment(QtCore.Qt.AlignLeft)
         return hbox
 
@@ -352,13 +418,30 @@ class Window(QWidget):
         detectBox = QGroupBox(self.tr('Detect'))
         objects = self.widgetObjectList()
         detectBox.setLayout(objects)
-        runButton = QPushButton(self.tr('Run'))
-        runButton.clicked.connect(self.run)
-        runButton.setMinimumSize(QtCore.QSize(120, 35))
-        runButton.setMaximumSize(QtCore.QSize(220, 35))
         vbox = QVBoxLayout()
         vbox.addWidget(detectBox)
-        vbox.addWidget(runButton, 0, QtCore.Qt.AlignHCenter)
+        return vbox
+
+    def widgetDebug(self):
+        """Create debug infos widget.
+        """
+        self.debugText = QTextEdit(self)
+        css = "QTextEdit { background-color: #FFF; color: #222; }"
+        self.debugText.setStyleSheet(css)
+        vbox = QVBoxLayout()
+        hbox = QHBoxLayout()
+        self.showDetails = QPushButton(self.tr('Details >>>'))
+        self.showDetails.setCheckable(True)
+        self.showDetails.clicked[bool].connect(self.toggleDebugInfo)
+        self.showDetails.setChecked(1)
+        hbox.addWidget(self.showDetails)
+        hbox.addStretch(1)
+        self.toggleDebugInfo(True)
+
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.debugText)
+        vbox.addStretch(1)
+
         return vbox
 
     def initUI(self):
@@ -372,16 +455,25 @@ class Window(QWidget):
         leftSide.setLayout(parametersWidget)
         rightSide = QWidget()
         rightSide.setLayout(frameWidget)
-        splitter = QSplitter(QtCore.Qt.Horizontal)
-        splitter.addWidget(leftSide)
-        splitter.addWidget(rightSide)
-        splitter.splitterMoved.connect(self.splitterMoved)
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 10)
+        hsplitter = QSplitter(QtCore.Qt.Horizontal)
+        hsplitter.addWidget(leftSide)
+        hsplitter.addWidget(rightSide)
+        hsplitter.splitterMoved.connect(self.splitterMoved)
+        hsplitter.setStretchFactor(0, 1)
+        hsplitter.setStretchFactor(1, 10)
+
+        downSide = QWidget()
+        downSide.setLayout(self.widgetDebug())
+        vsplitter = QSplitter(QtCore.Qt.Vertical)
+        vsplitter.addWidget(hsplitter)
+        vsplitter.addWidget(downSide)
+        vsplitter.splitterMoved.connect(self.splitterMoved)
+        vsplitter.setStretchFactor(0, 10)
+        vsplitter.setStretchFactor(1, 1)
 
         mainLayout = QVBoxLayout()
         mainLayout.addLayout(sourceWidget)
-        mainLayout.addWidget(splitter)
+        mainLayout.addWidget(vsplitter)
         self.setLayout(mainLayout)
         self.setGeometry(300, 300, 800, 600)
         self.show()
@@ -390,7 +482,6 @@ class Window(QWidget):
 def main():
 
     app = QApplication(sys.argv)
-    print "Main application thread is : ", app.thread().currentThreadId()
     main = Window()
     main.setWindowTitle('Detection')
     main.show()
