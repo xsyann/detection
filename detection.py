@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Mon Jul 14 22:56:01 2014 (+0200)
+# Last-Updated: Tue Jul 15 15:23:11 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 466
+#     Update #: 716
 #
 
 import sys
@@ -27,8 +27,24 @@ class VideoThread(QtCore.QThread):
     def __init__(self, mw):
         super(VideoThread, self).__init__(mw)
         self.mw = mw
+        self.stopped = False
+        self.capture = None
+        self.mutex = QtCore.QMutex()
+
+    def stop(self):
+        print "stopped"
+        with QtCore.QMutexLocker(self.mutex):
+            self.stopped = True
+
+    def clean(self):
+        self.wait()
+        del self.capture
+        self.capture = None
 
     def run(self):
+        print "Main application thread is : ", self.thread().currentThreadId()
+        with QtCore.QMutexLocker(self.mutex):
+            self.stopped = False
         mode = self.mw.getSourceMode()
         if mode == self.mw.SOURCE_VIDEO:
             path = self.mw.sourcePath.text()
@@ -37,30 +53,27 @@ class VideoThread(QtCore.QThread):
                 return
         elif mode == self.mw.SOURCE_CAMERA:
             path = 0
-        print "thread"
         while True:
-            if self.mw.stopVideoThread:
+            if self.stopped:
                 break
-            cap = cv2.VideoCapture(path)
-            fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+            self.capture = cv2.VideoCapture(path)
+            fps = self.capture.get(cv2.cv.CV_CAP_PROP_FPS)
 
-            while cap.isOpened():
-                if self.mw.stopVideoThread:
+            while self.capture.isOpened():
+                if self.stopped:
                     break
-                ret, frame = cap.read()
+                ret, frame = self.capture.read()
                 if frame is None:
                     break
                 if mode == self.mw.SOURCE_CAMERA:
                     cv2.flip(frame, 1, frame)
+
                 pixmap = self.mw.np2Qt(frame)
                 self.mw.displayImage(pixmap)
                 QApplication.processEvents()
+
                 if mode == self.mw.SOURCE_VIDEO:
                     time.sleep(1. / fps)
-            print "release"
-            cap.release()
-            print "out"
-        print "end"
 
 
 class Window(QWidget):
@@ -93,7 +106,6 @@ class Window(QWidget):
         self.initUI()
 
         self.videoThread = VideoThread(self)
-        self.stopVideoThread = False
 
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Escape:
@@ -153,9 +165,9 @@ class Window(QWidget):
 
     def displayMedia(self, path):
         sourceMode = self.getSourceMode()
-        while self.videoThread.isRunning():
-            self.stopVideoThread = True
-        self.stopVideoThread = False
+        if self.videoThread.isRunning():
+            self.videoThread.stop()
+        self.videoThread.clean()
         if sourceMode == self.SOURCE_IMAGE:
             img = self.readImage(path)
             pixmap = self.np2Qt(img)
@@ -364,19 +376,21 @@ class Window(QWidget):
         splitter.addWidget(leftSide)
         splitter.addWidget(rightSide)
         splitter.splitterMoved.connect(self.splitterMoved)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 10)
 
         mainLayout = QVBoxLayout()
         mainLayout.addLayout(sourceWidget)
         mainLayout.addWidget(splitter)
         self.setLayout(mainLayout)
-        self.setGeometry(300, 300, 300, 150)
+        self.setGeometry(300, 300, 800, 600)
         self.show()
 
 
 def main():
 
     app = QApplication(sys.argv)
-
+    print "Main application thread is : ", app.thread().currentThreadId()
     main = Window()
     main.setWindowTitle('Detection')
     main.show()
