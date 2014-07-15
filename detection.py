@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Tue Jul 15 17:29:31 2014 (+0200)
+# Last-Updated: Tue Jul 15 21:46:32 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 828
+#     Update #: 942
 #
 
 import sys
@@ -22,6 +22,8 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
                              QSplitter, QGroupBox, QTextEdit, QAbstractItemView,
                              QFrame, QSizePolicy, QSlider, QTreeView)
 from PyQt5.QtGui import QImage, QPixmap, QColor, QIcon
+
+import detector
 
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
@@ -72,12 +74,8 @@ class VideoThread(QtCore.QThread):
                 if mode == self.mw.SOURCE_CAMERA:
                     cv2.flip(frame, 1, frame)
 
-                pixmap = self.mw.np2Qt(frame)
-                self.mw.displayImage(pixmap)
+                self.mw.displayImage(frame)
                 QApplication.processEvents()
-
-                if mode == self.mw.SOURCE_VIDEO:
-                    time.sleep(1. / fps)
 
     def run(self):
         """Method Override.
@@ -103,26 +101,12 @@ class Window(QWidget):
     SOURCE_VIDEO = 'Video'
     SOURCE_CAMERA = 'Camera'
 
-    D_FACE = 'Face'
-    D_EYE = 'Eye'
-    D_NOSE = 'Nose'
-    D_BANANA = 'Banana'
-
     __sourceModes = [SOURCE_IMAGE, SOURCE_VIDEO, SOURCE_CAMERA]
 
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
 
-        self.__availableObjects = [self.D_NOSE]
-        # List of tuple (object, [children])
-        self.__detectObjects = [(self.D_FACE, [(self.D_EYE, [])]),
-                                (self.D_BANANA, [])]
-
-        self.__colors = { self.D_FACE: QColor(0, 255, 0),
-                          self.D_EYE: QColor(255, 0, 0),
-                          self.D_NOSE: QColor(255, 255, 0),
-                          self.D_BANANA: QColor(0, 0, 255)
-                          }
+        self.detector = detector.Detector()
 
         self.initUI()
 
@@ -161,15 +145,59 @@ class Window(QWidget):
         """Returns a colored icon for 'obj'.
         """
         pixmap = QPixmap(14, 14)
-        pixmap.fill(self.__colors[obj])
+        r, g, b = self.detector.colors[obj]
+        pixmap.fill(QColor(r, g, b))
         return QIcon(pixmap)
 
-    def displayImage(self, pixmap):
-        """Display 'pixmap' in 'mediaLabel'.
+    def scaleRect(self, rect, scale):
+        x, y, w, h = rect
+        return (x * scale, y * scale, w * scale, h * scale)
+
+    def drawRects(self, pixmap, rects, scale):
+        if rects is None:
+            return
+        painter = QtGui.QPainter(pixmap)
+        for obj, roi, objRects in rects:
+            for (x, y, w, h) in objRects:
+                x, y, w, h = self.scaleRect((x, y, w, h), scale)
+                cx, cy, cw, ch = self.scaleRect(roi, scale)
+                r, g, b = self.detector.colors[obj]
+                painter.setPen(QColor(r, g, b))
+                painter.drawRect(x + cx, y + cy, w, h)
+
+    def displayImage(self, img):
+        """Display numpy 'img' in 'mediaLabel'.
         """
+        rects = self.detector.detect(img, self.getObjectsTree())
+        pixmap = self.np2Qt(img)
+        w = float(pixmap.width())
         pixmap = self.fitImageToScreen(pixmap)
+        scaleFactor = pixmap.width() / w
+        self.drawRects(pixmap, rects, scaleFactor)
         self.mediaLabel.setPixmap(pixmap)
         self.mediaLabel.setFixedSize(pixmap.size())
+
+    def getObjectsTree(self):
+        """Create an object tree representation from QTreeView.
+        """
+        def addChildren(obj):
+            """Recursive function to create tree.
+            """
+            objs = []
+            childCount = obj.rowCount()
+            if childCount == 0:
+                return ((obj.text(), []))
+            for i in xrange(childCount):
+                child = obj.child(i)
+                objs.append(addChildren(child))
+            return (obj.text(), objs)
+        tree = []
+        for i in xrange(self.objectsTree.model().rowCount()):
+            rootIndex = self.objectsTree.model().index(i, 0)
+            rootItem = self.objectsTree.model().itemFromIndex(rootIndex)
+            tree.append(addChildren(rootItem))
+        return tree
+
 
     def readImage(self, path):
         """Load image from path.
@@ -202,8 +230,7 @@ class Window(QWidget):
             except (OSError, urllib2.HTTPError) as err:
                 print err
                 return
-            pixmap = self.np2Qt(img)
-            self.displayImage(pixmap)
+            self.displayImage(img)
         elif sourceMode == self.SOURCE_VIDEO or sourceMode == self.SOURCE_CAMERA:
             self.videoThread.start()
 
@@ -362,13 +389,13 @@ class Window(QWidget):
         def appendTree(objects, parent):
             """Recursive function to populate the tree.
             """
-            for object, children in objects:
-                item = QtGui.QStandardItem(object)
-                item.setIcon(self.getIcon(object))
+            for obj, children in objects:
+                item = QtGui.QStandardItem(obj)
+                item.setIcon(self.getIcon(obj))
                 parent.appendRow(item)
                 appendTree(children, item)
 
-        appendTree(self.__detectObjects, model)
+        appendTree(detector.Detector.getDefaultObjectsTree(), model)
 
         tree = QTreeView()
         tree.setModel(model)
@@ -385,7 +412,7 @@ class Window(QWidget):
         """
         self.objectsTree = self.widgetTree()
         self.availableObjectsList = QListWidget(self)
-        self.availableObjectsList.addItems(self.__availableObjects)
+        self.availableObjectsList.addItems(detector.Detector.getDefaultAvailableObjects())
         removeButton = QPushButton(self.tr('>>'))
         removeButton.clicked.connect(self.removeObject)
         addButton = QPushButton(self.tr('<<'))
