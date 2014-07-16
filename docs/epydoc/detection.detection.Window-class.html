@@ -169,11 +169,9 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="np2Qt"></a><span class="summary-sig-name">np2Qt</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">imageBGR</span>)</span><br />
-      Convert numpy array to QPixmap.</td>
+          <td><span class="summary-sig"><a name="populateUI"></a><span class="summary-sig-name">populateUI</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.np2Qt">source&nbsp;code</a></span>
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.populateUI">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -187,11 +185,9 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="fitImageToScreen"></a><span class="summary-sig-name">fitImageToScreen</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pixmap</span>)</span><br />
-      Fit pixmap to screen.</td>
+          <td><span class="summary-sig"><a name="connectUI"></a><span class="summary-sig-name">connectUI</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.fitImageToScreen">source&nbsp;code</a></span>
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.connectUI">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -223,11 +219,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="displayImage"></a><span class="summary-sig-name">displayImage</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pixmap</span>)</span><br />
-      Display 'pixmap' in 'mediaLabel'.</td>
+          <td><span class="summary-sig"><a name="drawRects"></a><span class="summary-sig-name">drawRects</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">rectsTree</span>,
+        <span class="summary-sig-arg">scale</span>)</span><br />
+      Draw rectangles in 'rectsTree' on 'pixmap'.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.displayImage">source&nbsp;code</a></span>
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.drawRects">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -241,11 +239,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="detection.detection.Window-class.html#readImage" class="summary-sig-name">readImage</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">path</span>)</span><br />
-      Load image from path.</td>
+          <td><span class="summary-sig"><a name="displayImage"></a><span class="summary-sig-name">displayImage</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">img</span>)</span><br />
+      Display numpy 'img' in 'mediaLabel'.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.readImage">source&nbsp;code</a></span>
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.displayImage">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -423,125 +421,6 @@
       Toggle debug infos widget.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.toggleDebugInfo">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="widgetSource"></a><span class="summary-sig-name">widgetSource</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create source widget.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.widgetSource">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="widgetFrame"></a><span class="summary-sig-name">widgetFrame</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create main display widget.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.widgetFrame">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="widgetTree"></a><span class="summary-sig-name">widgetTree</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create selected objects tree.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.widgetTree">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="widgetObjectList"></a><span class="summary-sig-name">widgetObjectList</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create objects list widget.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.widgetObjectList">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="widgetParameters"></a><span class="summary-sig-name">widgetParameters</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create parameters widget.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.widgetParameters">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="widgetDebug"></a><span class="summary-sig-name">widgetDebug</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create debug infos widget.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.widgetDebug">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="initUI"></a><span class="summary-sig-name">initUI</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Create User Interface.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.initUI">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -864,6 +743,15 @@
     <p class="indent-wrapped-lines"><b>Inherited from <code>sip.simplewrapper</code></b>:
       <code>__new__</code>
       </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="detection.window_ui.WindowUI-class.html">window_ui.WindowUI</a></code></b>:
+      <code><a href="detection.window_ui.WindowUI-class.html#setupUI">setupUI</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetDebug">widgetDebug</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetFrame">widgetFrame</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetObjectList">widgetObjectList</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetParameters">widgetParameters</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetSource">widgetSource</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetTree">widgetTree</a></code>
+      </p>
     </td>
   </tr>
 </table>
@@ -903,34 +791,6 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="SOURCE_CAMERA"></a><span class="summary-name">SOURCE_CAMERA</span> = <code title="'Camera'"><code class="variable-quote">'</code><code class="variable-string">Camera</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="D_FACE"></a><span class="summary-name">D_FACE</span> = <code title="'Face'"><code class="variable-quote">'</code><code class="variable-string">Face</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="D_EYE"></a><span class="summary-name">D_EYE</span> = <code title="'Eye'"><code class="variable-quote">'</code><code class="variable-string">Eye</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="D_NOSE"></a><span class="summary-name">D_NOSE</span> = <code title="'Nose'"><code class="variable-quote">'</code><code class="variable-string">Nose</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="D_BANANA"></a><span class="summary-name">D_BANANA</span> = <code title="'Banana'"><code class="variable-quote">'</code><code class="variable-string">Banana</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr class="private">
@@ -1032,27 +892,6 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="readImage"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">readImage</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">path</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="detection.detection-pysrc.html#Window.readImage">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Load image from path. Raises OSError exception if path doesn't exist 
-  or is not an image.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -1086,7 +925,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Tue Jul 15 17:29:37 2014
+    on Wed Jul 16 23:05:47 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

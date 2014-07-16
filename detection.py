@@ -4,33 +4,29 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Wed Jul 16 18:33:00 2014 (+0200)
+# Last-Updated: Wed Jul 16 23:00:05 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 984
+#     Update #: 1056
 #
 
 import sys
 import os
 import cv2
 import time
-import urllib2
 import numpy as np
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
-                             QHBoxLayout, QVBoxLayout, QDesktopWidget,
-                             QLabel, QLineEdit, QListWidget, QComboBox, QScrollArea,
+                             QHBoxLayout, QVBoxLayout, QScrollArea,
+                             QLabel, QLineEdit, QListWidget, QComboBox,
                              QSplitter, QGroupBox, QTextEdit, QAbstractItemView,
                              QFrame, QSizePolicy, QSlider, QTreeView)
 from PyQt5.QtGui import QImage, QPixmap, QColor, QIcon
 
+from window_ui import WindowUI
 import detector
+from detector import Detector
+import common
 from tree import Tree
-
-class EmittingStream(QtCore.QObject):
-    textWritten = QtCore.pyqtSignal(str)
-
-    def write(self, text):
-        self.textWritten.emit(str(text))
 
 class VideoThread(QtCore.QThread):
     def __init__(self, mw):
@@ -63,8 +59,7 @@ class VideoThread(QtCore.QThread):
             fps = self.capture.get(cv2.cv.CV_CAP_PROP_FPS)
 
             if not self.capture.isOpened():
-                print "[Error] Couldn't read movie file {}".format(path)
-                break
+                raise Exception, "Couldn't read movie file " + path
             while self.capture.isOpened():
                 if self.stopped:
                     break
@@ -88,15 +83,13 @@ class VideoThread(QtCore.QThread):
         if mode == self.mw.SOURCE_VIDEO:
             path = self.mw.sourcePath.text()
             if not path:
-                print '[Error] File path is empty'
-                return
+                raise Exception, 'File path is empty'
         elif mode == self.mw.SOURCE_CAMERA:
             path = 0
 
         self.main(mode, path)
 
-
-class Window(QWidget):
+class Window(QWidget, WindowUI):
 
     SOURCE_IMAGE = 'Image'
     SOURCE_VIDEO = 'Video'
@@ -107,11 +100,13 @@ class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
 
-        self.detector = detector.Detector()
+        self.detector = Detector()
 
-        self.initUI()
+        self.setupUI()
+        self.populateUI()
+        self.connectUI()
 
-        sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
+        sys.stdout = common.EmittingStream(textWritten=self.normalOutputWritten)
         self.videoThread = VideoThread(self)
 
     def __del__(self):
@@ -121,26 +116,33 @@ class Window(QWidget):
         if e.key() == QtCore.Qt.Key_Escape:
             self.close()
 
+    def populateUI(self):
+        self.availableObjectsList.addItems(Detector.getDefaultAvailableObjects())
+        for sourceMode in self.__sourceModes:
+            self.sourceCBox.addItem(sourceMode)
+
+        def populateTree(node, parent):
+            item = QtGui.QStandardItem(node)
+            item.setIcon(self.getIcon(node))
+            parent.appendRow(item)
+            return item
+
+        model = QtGui.QStandardItemModel(self)
+        Detector.getDefaultObjectsTree().map(model, populateTree)
+        self.objectsTree.setModel(model)
+
+    def connectUI(self):
+        self.hsplitter.splitterMoved.connect(self.splitterMoved)
+        self.vsplitter.splitterMoved.connect(self.splitterMoved)
+        self.showDetails.clicked[bool].connect(self.toggleDebugInfo)
+        self.addButton.clicked.connect(self.addObject)
+        self.removeButton.clicked.connect(self.removeObject)
+        self.sourceCBox.currentIndexChanged.connect(self.togglePath)
+        self.sourcePathButton.clicked.connect(self.loadMedia)
+        self.refreshButton.clicked.connect(self.refresh)
+
     ########################################################
     # Utils
-
-    def np2Qt(self, imageBGR):
-        """Convert numpy array to QPixmap.
-        """
-        height, width = imageBGR.shape[:2]
-        bytesPerLine = 3 * width
-
-        qimg = QImage(imageBGR.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
-        return QPixmap.fromImage(qimg)
-
-    def fitImageToScreen(self, pixmap):
-        """Fit pixmap to screen.
-        """
-        resolution = QDesktopWidget().screenGeometry()
-        h, w = resolution.width(), resolution.height()
-        w = min(pixmap.width(), w)
-        h = min(pixmap.height(), h)
-        return pixmap.scaled(QtCore.QSize(w, h), QtCore.Qt.KeepAspectRatio)
 
     def getIcon(self, obj):
         """Returns a colored icon for 'obj'.
@@ -150,23 +152,22 @@ class Window(QWidget):
         pixmap.fill(QColor(r, g, b))
         return QIcon(pixmap)
 
-    def scaleRect(self, rect, scale):
-        """Scale 'rect' with a factor of 'scale'.
-        """
-        x, y, w, h = rect
-        return (x * scale, y * scale, w * scale, h * scale)
-
     def drawRects(self, pixmap, rectsTree, scale):
         """Draw rectangles in 'rectsTree' on 'pixmap'.
         """
         painter = QtGui.QPainter(pixmap)
 
         def drawRect(node, parentRoi):
-            x, y, w, h = self.scaleRect(node.data, scale)
-            cx, cy, cw, ch = self.scaleRect(parentRoi, scale)
+            x, y, w, h = common.scaleRect(node.data, scale)
+            cx, cy, cw, ch = parentRoi
+            x += cx
+            y += cy
+            cx, cy = x, y
+            cx, cy, cw, ch = common.scaleRect((cx, cy, cw, ch), scale)
+            print node.name, x, cx
             r, g, b = self.detector.colors[node.name]
             painter.setPen(QColor(r, g, b))
-            painter.drawRect(x + cx, y + cy, w, h)
+            painter.drawRect(x, y, w, h)
             return (x, y, w, h)
 
         h, w = pixmap.height(), pixmap.width()
@@ -176,42 +177,17 @@ class Window(QWidget):
         """Display numpy 'img' in 'mediaLabel'.
         """
         # Detect on full size image
-        rectsTree = self.detector.detect(img, self.getObjectsTree())
-        pixmap = self.np2Qt(img)
+        rectsTree = self.detector.detect(img,
+                                         common.getObjectsTree(self.objectsTree))
+        pixmap = common.np2Qt(img)
         w = float(pixmap.width())
         # Scale image
-        pixmap = self.fitImageToScreen(pixmap)
+        pixmap = common.fitImageToScreen(pixmap)
         scaleFactor = pixmap.width() / w
         # Draw scaled rectangles
         self.drawRects(pixmap, rectsTree, scaleFactor)
         self.mediaLabel.setPixmap(pixmap)
         self.mediaLabel.setFixedSize(pixmap.size())
-
-    def getObjectsTree(self):
-        """Create an object tree representation from QTreeView.
-        """
-        tree = Tree()
-        model = self.objectsTree.model()
-        tree.fromQStandardItemModel(model)
-        return tree
-
-    def readImage(self, path):
-        """Load image from path.
-        Raises OSError exception if path doesn't exist or is not an image.
-        """
-        img = None
-        if not os.path.isfile(path):
-            try:
-                req = urllib2.urlopen(path)
-                arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-                img = cv2.imdecode(arr, cv2.CV_LOAD_IMAGE_COLOR)
-            except ValueError:
-                raise OSError(2, 'File not found', path)
-        else:
-            img = cv2.imread(path)
-        if img is None:
-            raise OSError(2, 'File not recognized', path)
-        return img
 
     def displayMedia(self, path):
         """Load and display media.
@@ -220,15 +196,14 @@ class Window(QWidget):
         if self.videoThread.isRunning():
             self.videoThread.stop()
         self.videoThread.clean()
-        if sourceMode == self.SOURCE_IMAGE:
-            try:
-                img = self.readImage(path)
-            except (OSError, urllib2.HTTPError) as err:
-                print err
-                return
-            self.displayImage(img)
-        elif sourceMode == self.SOURCE_VIDEO or sourceMode == self.SOURCE_CAMERA:
-            self.videoThread.start()
+        try:
+            if sourceMode == self.SOURCE_IMAGE:
+                img = common.readImage(path)
+                self.displayImage(img)
+            elif sourceMode == self.SOURCE_VIDEO or sourceMode == self.SOURCE_CAMERA:
+                self.videoThread.start()
+        except Exception as err:
+            print '[Error]', err
 
     def getSourceMode(self):
         """Return the current source mode.
@@ -327,175 +302,6 @@ class Window(QWidget):
         else:
             self.debugText.hide()
             self.showDetails.setText(self.tr('Details >>>'))
-
-    ########################################################
-    # Widgets
-
-    def widgetSource(self):
-        """Create source widget.
-        """
-        hbox = QHBoxLayout()
-        sourceLabel = QLabel(self.tr('Source'))
-
-        self.sourceCBox = QComboBox(self)
-        for sourceMode in self.__sourceModes:
-            self.sourceCBox.addItem(sourceMode)
-        self.sourceCBox.currentIndexChanged.connect(self.togglePath)
-
-        self.sourcePath = QLineEdit(self)
-
-        self.sourcePathButton = QPushButton('...')
-        self.sourcePathButton.clicked.connect(self.loadMedia)
-
-        refreshButton = QPushButton('')
-        refreshButton.setIcon(QIcon('assets/refresh.png'))
-        refreshButton.setIconSize(QtCore.QSize(20, 20))
-        refreshButton.setMinimumSize(QtCore.QSize(20, 20))
-        refreshButton.setMaximumSize(QtCore.QSize(20, 20))
-        refreshButton.setStyleSheet("QPushButton { border: none; }"
-                                "QPushButton:pressed { border: 1px solid gray; background-color: #aaa; }")
-        refreshButton.clicked.connect(self.refresh)
-
-        self.sourceCBox.setCurrentIndex(0)
-
-        hbox.addWidget(sourceLabel)
-        hbox.addWidget(self.sourceCBox)
-        hbox.addWidget(self.sourcePath)
-        hbox.addWidget(self.sourcePathButton)
-        hbox.addWidget(refreshButton)
-        hbox.setAlignment(QtCore.Qt.AlignLeft)
-        return hbox
-
-    def widgetFrame(self):
-        """Create main display widget.
-        """
-        vbox = QVBoxLayout()
-        scroll = QScrollArea()
-        scroll.setAlignment(QtCore.Qt.AlignCenter)
-        self.mediaLabel = QLabel(self)
-        scroll.setWidget(self.mediaLabel)
-        vbox.addWidget(scroll)
-        return vbox
-
-    def widgetTree(self):
-        """Create selected objects tree.
-        """
-        def populateTree(node, parent):
-            item = QtGui.QStandardItem(node)
-            item.setIcon(self.getIcon(node))
-            parent.appendRow(item)
-            return item
-
-        model = QtGui.QStandardItemModel(self)
-        detector.Detector.getDefaultObjectsTree().map(model, populateTree)
-
-        tree = QTreeView()
-        tree.setModel(model)
-        tree.header().setHidden(True)
-        tree.setDragEnabled(True)
-        tree.setDefaultDropAction(QtCore.Qt.MoveAction)
-        tree.setDragDropMode(QAbstractItemView.InternalMove)
-        tree.setAcceptDrops(True)
-        tree.setDropIndicatorShown(True)
-        return tree
-
-    def widgetObjectList(self):
-        """Create objects list widget.
-        """
-        self.objectsTree = self.widgetTree()
-        self.availableObjectsList = QListWidget(self)
-        self.availableObjectsList.addItems(detector.Detector.getDefaultAvailableObjects())
-        removeButton = QPushButton(self.tr('>>'))
-        removeButton.clicked.connect(self.removeObject)
-        addButton = QPushButton(self.tr('<<'))
-        addButton.clicked.connect(self.addObject)
-        vbox = QVBoxLayout()
-        vbox.addStretch(1)
-        vbox.addWidget(addButton)
-        vbox.addWidget(removeButton)
-        vbox.addStretch(1)
-
-        vboxSelected = QVBoxLayout()
-        selectedLabel = QLabel(self.tr('Selected'))
-        selectedLabel.setAlignment(QtCore.Qt.AlignCenter)
-        vboxSelected.addWidget(selectedLabel)
-        vboxSelected.addWidget(self.objectsTree)
-        vboxAvailable = QVBoxLayout()
-        availableLabel = QLabel(self.tr('Available'))
-        availableLabel.setAlignment(QtCore.Qt.AlignCenter)
-        vboxAvailable.addWidget(availableLabel)
-        vboxAvailable.addWidget(self.availableObjectsList)
-        hbox = QHBoxLayout()
-        hbox.addLayout(vboxSelected)
-        hbox.addLayout(vbox)
-        hbox.addLayout(vboxAvailable)
-        return hbox
-
-    def widgetParameters(self):
-        """Create parameters widget.
-        """
-        detectBox = QGroupBox(self.tr('Detect'))
-        objects = self.widgetObjectList()
-        detectBox.setLayout(objects)
-        vbox = QVBoxLayout()
-        vbox.addWidget(detectBox)
-        return vbox
-
-    def widgetDebug(self):
-        """Create debug infos widget.
-        """
-        self.debugText = QTextEdit(self)
-        css = "QTextEdit { background-color: #FFF; color: #222; }"
-        self.debugText.setStyleSheet(css)
-        vbox = QVBoxLayout()
-        hbox = QHBoxLayout()
-        self.showDetails = QPushButton(self.tr('Details >>>'))
-        self.showDetails.setCheckable(True)
-        self.showDetails.clicked[bool].connect(self.toggleDebugInfo)
-        self.showDetails.setChecked(1)
-        hbox.addWidget(self.showDetails)
-        hbox.addStretch(1)
-        self.toggleDebugInfo(True)
-
-        vbox.addLayout(hbox)
-        vbox.addWidget(self.debugText)
-        vbox.addStretch(1)
-
-        return vbox
-
-    def initUI(self):
-        """Create User Interface.
-        """
-        sourceWidget = self.widgetSource()
-        frameWidget = self.widgetFrame()
-        parametersWidget = self.widgetParameters()
-
-        leftSide = QWidget()
-        leftSide.setLayout(parametersWidget)
-        rightSide = QWidget()
-        rightSide.setLayout(frameWidget)
-        hsplitter = QSplitter(QtCore.Qt.Horizontal)
-        hsplitter.addWidget(leftSide)
-        hsplitter.addWidget(rightSide)
-        hsplitter.splitterMoved.connect(self.splitterMoved)
-        hsplitter.setStretchFactor(0, 1)
-        hsplitter.setStretchFactor(1, 10)
-
-        downSide = QWidget()
-        downSide.setLayout(self.widgetDebug())
-        vsplitter = QSplitter(QtCore.Qt.Vertical)
-        vsplitter.addWidget(hsplitter)
-        vsplitter.addWidget(downSide)
-        vsplitter.splitterMoved.connect(self.splitterMoved)
-        vsplitter.setStretchFactor(0, 10)
-        vsplitter.setStretchFactor(1, 1)
-
-        mainLayout = QVBoxLayout()
-        mainLayout.addLayout(sourceWidget)
-        mainLayout.addWidget(vsplitter)
-        self.setLayout(mainLayout)
-        self.setGeometry(300, 300, 800, 600)
-        self.show()
 
 
 def main():

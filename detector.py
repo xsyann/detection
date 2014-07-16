@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Wed Jul 16 18:33:02 2014 (+0200)
+# Last-Updated: Wed Jul 16 23:04:19 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 176
+#     Update #: 206
 #
 
 import cv2
@@ -19,14 +19,34 @@ class Detector(object):
     EYE = 'Eye'
     FULLBODY = 'Full Body'
     LOWERBODY = 'Lower Body'
+    UPPERBODY = 'Upper Body'
     SMILE = 'Smile'
+    NOSE = 'Nose'
+    LEFTEYE = 'Left eye'
+    RIGHTEYE = 'Right eye'
+    EYEPAIRBIG = 'Eye pair big'
+    EYEPAIRSMALL = 'Eye pair small'
+    LEFTEAR = 'Left ear'
+    RIGHTEAR = 'Right ear'
+    MOUTH = 'Mouth'
+    PROFILFACE = 'Profil face'
 
     __classifiersPaths = { FACE: 'haarcascades/haarcascade_frontalface_alt.xml',
-                    EYE: 'haarcascades/haarcascade_eye.xml',
-                    FULLBODY: 'haarcascades/haarcascade_fullbody.xml',
-                    LOWERBODY: 'haarcascades/haarcascade_lowerbody.xml',
-                    SMILE: 'haarcascades/haarcascade_smile.xml'
-                    }
+                           EYE: 'haarcascades/haarcascade_eye.xml',
+                           FULLBODY: 'haarcascades/haarcascade_fullbody.xml',
+                           LOWERBODY: 'haarcascades/haarcascade_lowerbody.xml',
+                           UPPERBODY: 'haarcascades/haarcascade_mcs_upperbody.xml',
+                           SMILE: 'haarcascades/haarcascade_smile.xml',
+                           NOSE: 'haarcascades/haarcascade_mcs_nose.xml',
+                           LEFTEYE: 'haarcascades/haarcascade_mcs_lefteye.xml',
+                           RIGHTEYE: 'haarcascades/haarcascade_mcs_right.xml',
+                           EYEPAIRBIG: 'haarcascades/haarcascade_mcs_eyepair_small.xml',
+                           EYEPAIRSMALL: 'haarcascades/haarcascade_mcs_eyepair_big.xml',
+                           LEFTEAR: 'haarcascades/haarcascade_mcs_leftear.xml',
+                           RIGHTEAR: 'haarcascades/haarcascade_mcs_rightear.xml',
+                           MOUTH: 'haarcascades/haarcascade_mcs_mouth.xml',
+                           PROFILFACE: 'haarcascades/haarcascade_profileface.xml',
+                           }
 
     @staticmethod
     def getDefaultObjectsTree():
@@ -34,19 +54,33 @@ class Detector(object):
         """
         tree = Tree()
         tree[Detector.FACE][Detector.EYE]
-        tree[Detector.FACE][Detector.SMILE]
+        tree[Detector.FACE][Detector.MOUTH]
+        tree[Detector.FACE][Detector.NOSE]
         return tree
 
     @staticmethod
     def getDefaultAvailableObjects():
-        return [Detector.FULLBODY, Detector.LOWERBODY]
+        return [Detector.FULLBODY, Detector.LOWERBODY,
+                Detector.UPPERBODY, Detector.SMILE, Detector.LEFTEYE,
+                Detector.RIGHTEYE, Detector.EYEPAIRBIG, Detector.EYEPAIRSMALL,
+                Detector.LEFTEAR, Detector.RIGHTEAR, Detector.PROFILFACE]
 
     def __init__(self):
         self.colors = { self.FACE: (0, 255, 0),
-                   self.EYE: (255, 0, 0),
-                   self.FULLBODY: (255, 255, 0),
-                   self.LOWERBODY: (0, 0, 255),
-                   self.SMILE: (255, 0, 255)
+                        self.EYE: (255, 0, 0),
+                        self.FULLBODY: (255, 255, 0),
+                        self.LOWERBODY: (0, 0, 255),
+                        self.UPPERBODY: (200, 125, 50),
+                        self.SMILE: (255, 0, 255),
+                        self.NOSE: (50, 125, 200),
+                        self.LEFTEYE: (125, 50, 200),
+                        self.RIGHTEYE: (50, 200, 125),
+                        self.EYEPAIRBIG: (125, 200, 50),
+                        self.EYEPAIRSMALL: (230, 200, 150),
+                        self.LEFTEAR: (200, 230, 150),
+                        self.RIGHTEAR: (0, 172, 230),
+                        self.MOUTH: (172, 0, 230),
+                        self.PROFILFACE: (230, 57, 0)
                    }
 
     def preprocess(self, img):
