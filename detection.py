@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Wed Jul 16 23:00:05 2014 (+0200)
+# Last-Updated: Wed Jul 16 23:12:33 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 1056
+#     Update #: 1060
 #
 
 import sys
@@ -160,14 +160,9 @@ class Window(QWidget, WindowUI):
         def drawRect(node, parentRoi):
             x, y, w, h = common.scaleRect(node.data, scale)
             cx, cy, cw, ch = parentRoi
-            x += cx
-            y += cy
-            cx, cy = x, y
-            cx, cy, cw, ch = common.scaleRect((cx, cy, cw, ch), scale)
-            print node.name, x, cx
             r, g, b = self.detector.colors[node.name]
             painter.setPen(QColor(r, g, b))
-            painter.drawRect(x, y, w, h)
+            painter.drawRect(x + cx, y + cy, w, h)
             return (x, y, w, h)
 
         h, w = pixmap.height(), pixmap.width()
