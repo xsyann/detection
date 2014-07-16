@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Tue Jul 15 21:46:32 2014 (+0200)
+# Last-Updated: Wed Jul 16 18:33:00 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 942
+#     Update #: 984
 #
 
 import sys
@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
 from PyQt5.QtGui import QImage, QPixmap, QColor, QIcon
 
 import detector
+from tree import Tree
 
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
@@ -150,54 +151,49 @@ class Window(QWidget):
         return QIcon(pixmap)
 
     def scaleRect(self, rect, scale):
+        """Scale 'rect' with a factor of 'scale'.
+        """
         x, y, w, h = rect
         return (x * scale, y * scale, w * scale, h * scale)
 
-    def drawRects(self, pixmap, rects, scale):
-        if rects is None:
-            return
+    def drawRects(self, pixmap, rectsTree, scale):
+        """Draw rectangles in 'rectsTree' on 'pixmap'.
+        """
         painter = QtGui.QPainter(pixmap)
-        for obj, roi, objRects in rects:
-            for (x, y, w, h) in objRects:
-                x, y, w, h = self.scaleRect((x, y, w, h), scale)
-                cx, cy, cw, ch = self.scaleRect(roi, scale)
-                r, g, b = self.detector.colors[obj]
-                painter.setPen(QColor(r, g, b))
-                painter.drawRect(x + cx, y + cy, w, h)
+
+        def drawRect(node, parentRoi):
+            x, y, w, h = self.scaleRect(node.data, scale)
+            cx, cy, cw, ch = self.scaleRect(parentRoi, scale)
+            r, g, b = self.detector.colors[node.name]
+            painter.setPen(QColor(r, g, b))
+            painter.drawRect(x + cx, y + cy, w, h)
+            return (x, y, w, h)
+
+        h, w = pixmap.height(), pixmap.width()
+        rectsTree.map((0, 0, w, h), drawRect)
 
     def displayImage(self, img):
         """Display numpy 'img' in 'mediaLabel'.
         """
-        rects = self.detector.detect(img, self.getObjectsTree())
+        # Detect on full size image
+        rectsTree = self.detector.detect(img, self.getObjectsTree())
         pixmap = self.np2Qt(img)
         w = float(pixmap.width())
+        # Scale image
         pixmap = self.fitImageToScreen(pixmap)
         scaleFactor = pixmap.width() / w
-        self.drawRects(pixmap, rects, scaleFactor)
+        # Draw scaled rectangles
+        self.drawRects(pixmap, rectsTree, scaleFactor)
         self.mediaLabel.setPixmap(pixmap)
         self.mediaLabel.setFixedSize(pixmap.size())
 
     def getObjectsTree(self):
         """Create an object tree representation from QTreeView.
         """
-        def addChildren(obj):
-            """Recursive function to create tree.
-            """
-            objs = []
-            childCount = obj.rowCount()
-            if childCount == 0:
-                return ((obj.text(), []))
-            for i in xrange(childCount):
-                child = obj.child(i)
-                objs.append(addChildren(child))
-            return (obj.text(), objs)
-        tree = []
-        for i in xrange(self.objectsTree.model().rowCount()):
-            rootIndex = self.objectsTree.model().index(i, 0)
-            rootItem = self.objectsTree.model().itemFromIndex(rootIndex)
-            tree.append(addChildren(rootItem))
+        tree = Tree()
+        model = self.objectsTree.model()
+        tree.fromQStandardItemModel(model)
         return tree
-
 
     def readImage(self, path):
         """Load image from path.
@@ -384,18 +380,14 @@ class Window(QWidget):
     def widgetTree(self):
         """Create selected objects tree.
         """
+        def populateTree(node, parent):
+            item = QtGui.QStandardItem(node)
+            item.setIcon(self.getIcon(node))
+            parent.appendRow(item)
+            return item
+
         model = QtGui.QStandardItemModel(self)
-
-        def appendTree(objects, parent):
-            """Recursive function to populate the tree.
-            """
-            for obj, children in objects:
-                item = QtGui.QStandardItem(obj)
-                item.setIcon(self.getIcon(obj))
-                parent.appendRow(item)
-                appendTree(children, item)
-
-        appendTree(detector.Detector.getDefaultObjectsTree(), model)
+        detector.Detector.getDefaultObjectsTree().map(model, populateTree)
 
         tree = QTreeView()
         tree.setModel(model)
