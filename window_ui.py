@@ -4,18 +4,28 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:06:25 2014 (+0200)
-# Last-Updated: Wed Jul 16 19:10:31 2014 (+0200)
+# Last-Updated: Thu Jul 17 16:04:32 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 24
+#     Update #: 122
 #
 
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
-                             QHBoxLayout, QVBoxLayout, QDesktopWidget, QTreeView,
-                             QLabel, QLineEdit, QListWidget, QComboBox, QScrollArea,
+                             QHBoxLayout, QVBoxLayout, QDesktopWidget, QScrollArea,
+                             QLabel, QLineEdit, QListWidget, QComboBox,
                              QSplitter, QGroupBox, QTextEdit, QAbstractItemView)
 
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QDropEvent, QDragMoveEvent
+
+class QTreeView(QtWidgets.QTreeView):
+    customSelectionChanged = QtCore.pyqtSignal(QtCore.QItemSelection, QtCore.QItemSelection)
+
+    def __init__(self):
+        super(QTreeView, self).__init__()
+
+    def selectionChanged(self, *args, **kwds):
+        self.customSelectionChanged.emit(*args, **kwds)
+        super(QTreeView, self).selectionChanged(*args, **kwds)
 
 class WindowUI():
 
@@ -65,6 +75,7 @@ class WindowUI():
         tree = QTreeView()
         tree.header().setHidden(True)
         tree.setDragEnabled(True)
+        tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
         tree.setDefaultDropAction(QtCore.Qt.MoveAction)
         tree.setDragDropMode(QAbstractItemView.InternalMove)
         tree.setAcceptDrops(True)
@@ -76,6 +87,7 @@ class WindowUI():
         """
         self.objectsTree = self.widgetTree()
         self.availableObjectsList = QListWidget(self)
+        self.availableObjectsList.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.removeButton = QPushButton(self.tr('>>'))
         self.addButton = QPushButton(self.tr('<<'))
 
@@ -101,14 +113,42 @@ class WindowUI():
         hbox.addLayout(vboxAvailable)
         return hbox
 
+    def widgetClassifierParameters(self):
+        """Create classifier parameters widget.
+        """
+        hbox = QHBoxLayout()
+        nameLabel = QLabel(self.tr('Name'))
+        self.classifierName = QLineEdit(self)
+        self.classifierType = QLabel('')
+        hbox.addWidget(nameLabel)
+        hbox.addWidget(self.classifierName)
+        hbox.addWidget(self.classifierType)
+
+        color = QtGui.QColor(0, 0, 0)
+        self.colorPicker = QPushButton('')
+        self.colorPicker.setMaximumSize(QtCore.QSize(16, 16))
+        hcolor = QHBoxLayout()
+        hcolor.addWidget(QLabel(self.tr('Display color')))
+        hcolor.addWidget(self.colorPicker)
+        hcolor.addStretch(1)
+
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.addLayout(hcolor)
+        return vbox
+
     def widgetParameters(self):
         """Create parameters widget.
         """
         detectBox = QGroupBox(self.tr('Detect'))
         objects = self.widgetObjectList()
         detectBox.setLayout(objects)
+        self.parametersBox = QGroupBox(self.tr('Classifier Parameters'))
+        parameters = self.widgetClassifierParameters()
+        self.parametersBox.setLayout(parameters)
         vbox = QVBoxLayout()
         vbox.addWidget(detectBox)
+        vbox.addWidget(self.parametersBox)
         return vbox
 
     def widgetDebug(self):

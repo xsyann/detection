@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Wed Jul 16 23:04:19 2014 (+0200)
+# Last-Updated: Thu Jul 17 17:02:56 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 206
+#     Update #: 230
 #
 
 import cv2
@@ -60,34 +60,18 @@ class Detector(object):
 
     @staticmethod
     def getDefaultAvailableObjects():
-        return [Detector.FULLBODY, Detector.LOWERBODY,
-                Detector.UPPERBODY, Detector.SMILE, Detector.LEFTEYE,
-                Detector.RIGHTEYE, Detector.EYEPAIRBIG, Detector.EYEPAIRSMALL,
-                Detector.LEFTEAR, Detector.RIGHTEAR, Detector.PROFILFACE]
+        return Detector.__classifiersPaths.keys()
 
-    def __init__(self):
-        self.colors = { self.FACE: (0, 255, 0),
-                        self.EYE: (255, 0, 0),
-                        self.FULLBODY: (255, 255, 0),
-                        self.LOWERBODY: (0, 0, 255),
-                        self.UPPERBODY: (200, 125, 50),
-                        self.SMILE: (255, 0, 255),
-                        self.NOSE: (50, 125, 200),
-                        self.LEFTEYE: (125, 50, 200),
-                        self.RIGHTEYE: (50, 200, 125),
-                        self.EYEPAIRBIG: (125, 200, 50),
-                        self.EYEPAIRSMALL: (230, 200, 150),
-                        self.LEFTEAR: (200, 230, 150),
-                        self.RIGHTEAR: (0, 172, 230),
-                        self.MOUTH: (172, 0, 230),
-                        self.PROFILFACE: (230, 57, 0)
-                   }
+    @staticmethod
+    def getDefaultHSVColor(classifier):
+        classifiers = Detector.__classifiersPaths.keys()
+        return (classifiers.index(classifier) / float(len(classifiers)), 1, 1)
 
     def preprocess(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return cv2.equalizeHist(gray)
 
-    def detect(self, img, tree, scaleFactor=1.3, minNeighbors=4, minSize=(24, 24),
+    def detect(self, img, tree, scaleFactor=1.3, minNeighbors=4, minSize=(0, 0),
                flags=cv2.cv.CV_HAAR_SCALE_IMAGE):
 
         def detectTree(tree, parentRoi, roiTree):
@@ -96,10 +80,11 @@ class Detector(object):
             x, y, w, h = parentRoi
             cropped = img[y:y+h, x:x+w]
             for node, children in tree.iteritems():
-                objRects = self.detectObject(cropped, node, scaleFactor,
+                base, name, color = node.data
+                objRects = self.detectObject(cropped, base, scaleFactor,
                                              minNeighbors, minSize, flags)
                 for roi in objRects:
-                    roiNode = Node(node, roi)
+                    roiNode = Node(base, (roi, name, color))
                     roiTree[roiNode]
                     detectTree(children, roi, roiTree[roiNode])
 

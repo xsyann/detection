@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:11:21 2014 (+0200)
-# Last-Updated: Wed Jul 16 22:31:09 2014 (+0200)
+# Last-Updated: Thu Jul 17 13:07:33 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 26
+#     Update #: 34
 #
 
 import cv2
@@ -24,6 +24,13 @@ class EmittingStream(QtCore.QObject):
 
     def write(self, text):
         self.textWritten.emit(str(text))
+
+def setPickerColor(color, colorPicker):
+    """Set the color picker color.
+    """
+    css = 'QWidget { background-color: %s; border-width: 1px; \
+        border-radius: 2px; border-color: #555; border-style: outset; }'
+    colorPicker.setStyleSheet(css % color.name())
 
 def np2Qt(imageBGR):
     """Convert numpy array to QPixmap.
@@ -51,12 +58,12 @@ def scaleRect(rect, scale):
     return (x * scale, y * scale, w * scale, h * scale)
 
 
-def getObjectsTree(qTreeView):
+def getObjectsTree(qTreeView, table):
     """Create an object tree representation from QTreeView.
     """
     tree = Tree()
     model = qTreeView.model()
-    tree.fromQStandardItemModel(model)
+    tree.fromQStandardItemModel(model, table)
     return tree
 
 def readImage(path):

@@ -201,11 +201,45 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="initUI"></a><span class="summary-sig-name">initUI</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.initUI">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="getIcon"></a><span class="summary-sig-name">getIcon</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">obj</span>)</span><br />
-      Returns a colored icon for 'obj'.</td>
+        <span class="summary-sig-arg">color</span>)</span><br />
+      Returns a colored icon.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.getIcon">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="populateTree"></a><span class="summary-sig-name">populateTree</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">parent</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.populateTree">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -292,6 +326,24 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="updateClassifierParameters"></a><span class="summary-sig-name">updateClassifierParameters</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">color</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateClassifierParameters">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="normalOutputWritten"></a><span class="summary-sig-name">normalOutputWritten</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">text</span>)</span><br />
       Append text to debug infos.</td>
@@ -349,6 +401,42 @@
       Hide path for camera mode.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.togglePath">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="colorDialog"></a><span class="summary-sig-name">colorDialog</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Open color dialog to pick a color.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.colorDialog">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="showClassifierParameters"></a><span class="summary-sig-name">showClassifierParameters</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">selected</span>,
+        <span class="summary-sig-arg">deselected</span>)</span><br />
+      Show the selected classifier parameters.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.showClassifierParameters">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -745,6 +833,7 @@
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="detection.window_ui.WindowUI-class.html">window_ui.WindowUI</a></code></b>:
       <code><a href="detection.window_ui.WindowUI-class.html#setupUI">setupUI</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetClassifierParameters">widgetClassifierParameters</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetDebug">widgetDebug</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetFrame">widgetFrame</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetObjectList">widgetObjectList</a></code>,
@@ -925,7 +1014,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Wed Jul 16 23:13:28 2014
+    on Thu Jul 17 17:05:28 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Wed Jul 16 23:12:33 2014 (+0200)
+# Last-Updated: Thu Jul 17 17:03:14 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 1060
+#     Update #: 1364
 #
 
 import sys
@@ -14,12 +14,12 @@ import os
 import cv2
 import time
 import numpy as np
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
-                             QHBoxLayout, QVBoxLayout, QScrollArea,
+                             QHBoxLayout, QVBoxLayout, QScrollArea, QColorDialog,
                              QLabel, QLineEdit, QListWidget, QComboBox,
                              QSplitter, QGroupBox, QTextEdit, QAbstractItemView,
-                             QFrame, QSizePolicy, QSlider, QTreeView)
+                             QFrame, QSizePolicy, QSlider)
 from PyQt5.QtGui import QImage, QPixmap, QColor, QIcon
 
 from window_ui import WindowUI
@@ -101,13 +101,15 @@ class Window(QWidget, WindowUI):
         super(Window, self).__init__(parent)
 
         self.detector = Detector()
+        self.videoThread = VideoThread(self)
+        sys.stdout = common.EmittingStream(textWritten=self.normalOutputWritten)
+
+        self.classifiersParameters = {}
 
         self.setupUI()
         self.populateUI()
         self.connectUI()
-
-        sys.stdout = common.EmittingStream(textWritten=self.normalOutputWritten)
-        self.videoThread = VideoThread(self)
+        self.initUI()
 
     def __del__(self):
         sys.stdout = sys.__stdout__
@@ -121,14 +123,9 @@ class Window(QWidget, WindowUI):
         for sourceMode in self.__sourceModes:
             self.sourceCBox.addItem(sourceMode)
 
-        def populateTree(node, parent):
-            item = QtGui.QStandardItem(node)
-            item.setIcon(self.getIcon(node))
-            parent.appendRow(item)
-            return item
-
         model = QtGui.QStandardItemModel(self)
-        Detector.getDefaultObjectsTree().map(model, populateTree)
+        func = lambda node, parent: self.populateTree(node, parent)
+        Detector.getDefaultObjectsTree().map(model, func)
         self.objectsTree.setModel(model)
 
     def connectUI(self):
@@ -140,17 +137,33 @@ class Window(QWidget, WindowUI):
         self.sourceCBox.currentIndexChanged.connect(self.togglePath)
         self.sourcePathButton.clicked.connect(self.loadMedia)
         self.refreshButton.clicked.connect(self.refresh)
+        self.objectsTree.customSelectionChanged.connect(self.showClassifierParameters)
+        self.colorPicker.clicked.connect(self.colorDialog)
+        self.classifierName.textChanged.connect(self.updateClassifierParameters)
+
+    def initUI(self):
+        self.showClassifierParameters(None, None)
 
     ########################################################
     # Utils
 
-    def getIcon(self, obj):
-        """Returns a colored icon for 'obj'.
+    def getIcon(self, color):
+        """Returns a colored icon.
         """
         pixmap = QPixmap(14, 14)
-        r, g, b = self.detector.colors[obj]
-        pixmap.fill(QColor(r, g, b))
+        pixmap.fill(color)
         return QIcon(pixmap)
+
+    def populateTree(self, node, parent):
+        item = QtGui.QStandardItem(node)
+        item.setData(hash(item))
+        h, s, v = Detector.getDefaultHSVColor(node)
+        color = QColor()
+        color.setHsvF(h, s, v)
+        item.setIcon(self.getIcon(color))
+        self.classifiersParameters[item.data()] = (node, node, color)
+        parent.appendRow(item)
+        return item
 
     def drawRects(self, pixmap, rectsTree, scale):
         """Draw rectangles in 'rectsTree' on 'pixmap'.
@@ -158,10 +171,11 @@ class Window(QWidget, WindowUI):
         painter = QtGui.QPainter(pixmap)
 
         def drawRect(node, parentRoi):
-            x, y, w, h = common.scaleRect(node.data, scale)
+            roi, name, color = node.data
+            x, y, w, h = common.scaleRect(roi, scale)
             cx, cy, cw, ch = parentRoi
-            r, g, b = self.detector.colors[node.name]
-            painter.setPen(QColor(r, g, b))
+            painter.setPen(color)
+            painter.drawText(x + cx, y + cy, name)
             painter.drawRect(x + cx, y + cy, w, h)
             return (x, y, w, h)
 
@@ -172,8 +186,11 @@ class Window(QWidget, WindowUI):
         """Display numpy 'img' in 'mediaLabel'.
         """
         # Detect on full size image
-        rectsTree = self.detector.detect(img,
-                                         common.getObjectsTree(self.objectsTree))
+        table = { k: param for (k, param) in self.classifiersParameters.iteritems() }
+        table = self.classifiersParameters
+        tree = common.getObjectsTree(self.objectsTree, table)
+        rectsTree = self.detector.detect(img, tree)
+
         pixmap = common.np2Qt(img)
         w = float(pixmap.width())
         # Scale image
@@ -204,6 +221,17 @@ class Window(QWidget, WindowUI):
         """Return the current source mode.
         """
         return self.__sourceModes[self.sourceCBox.currentIndex()]
+
+    def updateClassifierParameters(self, name=None, color=None):
+        index = self.objectsTree.currentIndex()
+        item = index.model().itemFromIndex(index)
+        base, oldName, oldColor = self.classifiersParameters[item.data()]
+        if name:
+            item.setText(name)
+            self.classifiersParameters[item.data()] = (base, name, oldColor)
+        if color:
+            item.setIcon(self.getIcon(color))
+            self.classifiersParameters[item.data()] = (base, oldName, color)
 
     ########################################################
     # Signals handlers
@@ -248,37 +276,54 @@ class Window(QWidget, WindowUI):
             self.sourcePath.show()
             self.sourcePathButton.show()
 
+    def colorDialog(self):
+        """Open color dialog to pick a color.
+        """
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            self.backgroundColor = color
+            common.setPickerColor(color, self.colorPicker)
+            self.updateClassifierParameters(color=color)
+
+    def showClassifierParameters(self, selected, deselected):
+        """Show the selected classifier parameters.
+        """
+        selectedCount = len(self.objectsTree.selectedIndexes())
+        if selectedCount == 1:
+            self.parametersBox.setEnabled(True)
+            index = self.objectsTree.currentIndex()
+            item = index.model().itemFromIndex(index)
+            base, name, color = self.classifiersParameters[item.data()]
+            self.classifierName.setText(name)
+            common.setPickerColor(color, self.colorPicker)
+            self.classifierType.setText('(' + base + ')')
+        else:
+            self.parametersBox.setEnabled(False)
+
     def addObject(self):
         """Add object to detect.
         """
         selected = self.availableObjectsList.selectedItems()
         for item in selected:
-            self.availableObjectsList.takeItem(self.availableObjectsList.row(item))
-            obj = QtGui.QStandardItem(item.text())
-            obj.setIcon(self.getIcon(item.text()))
-            self.objectsTree.model().appendRow(obj)
+            row = (self.availableObjectsList.row(item) + 1) % self.availableObjectsList.count()
+            self.availableObjectsList.setCurrentRow(row)
+            node = item.text()
+            self.populateTree(node, self.objectsTree.model())
 
     def removeObject(self):
         """Remove object to detect.
         """
-        index = self.objectsTree.currentIndex()
-        if index.model():
+        selected = self.objectsTree.selectedIndexes()
+        while selected and selected[0].model():
+            index = selected[0]
             item = index.model().itemFromIndex(index)
-
-            def transferChildren(obj):
-                """Recursive function to remove children.
-                """
-                self.availableObjectsList.addItem(obj.text())
-                childCount = obj.rowCount()
-                for i in xrange(childCount):
-                    child = obj.child(i)
-                    transferChildren(child)
-            transferChildren(item)
-
+            del self.classifiersParameters[item.data()]
             if item.parent():
                 index.model().removeRow(item.row(), item.parent().index())
             else:
                 index.model().removeRow(item.row())
+            selected = self.objectsTree.selectedIndexes()
 
     def splitterMoved(self, pos, index):
         """Avoid segfault when QListWidget has focus and
