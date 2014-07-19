@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Thu Jul 17 17:03:14 2014 (+0200)
+# Last-Updated: Sat Jul 19 11:46:04 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 1364
+#     Update #: 1546
 #
 
 import sys
@@ -24,7 +24,7 @@ from PyQt5.QtGui import QImage, QPixmap, QColor, QIcon
 
 from window_ui import WindowUI
 import detector
-from detector import Detector
+from detector import Detector, ClassifierParameters
 import common
 from tree import Tree
 
@@ -59,7 +59,8 @@ class VideoThread(QtCore.QThread):
             fps = self.capture.get(cv2.cv.CV_CAP_PROP_FPS)
 
             if not self.capture.isOpened():
-                raise Exception, "Couldn't read movie file " + path
+                print "Couldn't read movie file " + path
+                break
             while self.capture.isOpened():
                 if self.stopped:
                     break
@@ -83,7 +84,8 @@ class VideoThread(QtCore.QThread):
         if mode == self.mw.SOURCE_VIDEO:
             path = self.mw.sourcePath.text()
             if not path:
-                raise Exception, 'File path is empty'
+                print 'File path is empty'
+                return
         elif mode == self.mw.SOURCE_CAMERA:
             path = 0
 
@@ -95,7 +97,13 @@ class Window(QWidget, WindowUI):
     SOURCE_VIDEO = 'Video'
     SOURCE_CAMERA = 'Camera'
 
+    DISPLAY_INPUT = 'Input'
+    DISPLAY_PREPROCESSED = 'Pre-processed'
+
     __sourceModes = [SOURCE_IMAGE, SOURCE_VIDEO, SOURCE_CAMERA]
+    __displayModes = [DISPLAY_INPUT, DISPLAY_PREPROCESSED]
+
+    debugSignal = QtCore.pyqtSignal(object, int)
 
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
@@ -103,6 +111,7 @@ class Window(QWidget, WindowUI):
         self.detector = Detector()
         self.videoThread = VideoThread(self)
         sys.stdout = common.EmittingStream(textWritten=self.normalOutputWritten)
+        self.debugSignal.connect(self.debugTable)
 
         self.classifiersParameters = {}
 
@@ -122,7 +131,8 @@ class Window(QWidget, WindowUI):
         self.availableObjectsList.addItems(Detector.getDefaultAvailableObjects())
         for sourceMode in self.__sourceModes:
             self.sourceCBox.addItem(sourceMode)
-
+        for displayMode in self.__displayModes:
+            self.displayCBox.addItem(displayMode)
         model = QtGui.QStandardItemModel(self)
         func = lambda node, parent: self.populateTree(node, parent)
         Detector.getDefaultObjectsTree().map(model, func)
@@ -140,9 +150,14 @@ class Window(QWidget, WindowUI):
         self.objectsTree.customSelectionChanged.connect(self.showClassifierParameters)
         self.colorPicker.clicked.connect(self.colorDialog)
         self.classifierName.textChanged.connect(self.updateClassifierParameters)
+        self.scaleFactor.valueChanged.connect(self.updateScaleFactor)
+        self.minNeighbors.valueChanged.connect(self.updateMinNeighbors)
+        self.minWidth.valueChanged.connect(self.updateMinWidth)
+        self.minHeight.valueChanged.connect(self.updateMinHeight)
 
     def initUI(self):
         self.showClassifierParameters(None, None)
+        self.equalizeHist.setChecked(True)
 
     ########################################################
     # Utils
@@ -161,7 +176,7 @@ class Window(QWidget, WindowUI):
         color = QColor()
         color.setHsvF(h, s, v)
         item.setIcon(self.getIcon(color))
-        self.classifiersParameters[item.data()] = (node, node, color)
+        self.classifiersParameters[item.data()] = ClassifierParameters(node, node, color)
         parent.appendRow(item)
         return item
 
@@ -177,20 +192,48 @@ class Window(QWidget, WindowUI):
             painter.setPen(color)
             painter.drawText(x + cx, y + cy, name)
             painter.drawRect(x + cx, y + cy, w, h)
-            return (x, y, w, h)
+            return (x + cx, y + cy, w, h)
 
         h, w = pixmap.height(), pixmap.width()
         rectsTree.map((0, 0, w, h), drawRect)
+
+    def debugTable(self, args, append=False):
+        """Display debug info into table.
+        """
+        rows = len(args)
+        if not append:
+            self.debugCursor = self.debugText.textCursor()
+            format = QtGui.QTextTableFormat()
+            constraints = [QtGui.QTextLength(QtGui.QTextLength.FixedLength,
+                                             size) for arg, size in args]
+            format.setColumnWidthConstraints(constraints)
+            format.setBorder(0)
+            format.setCellPadding(2)
+            format.setCellSpacing(0)
+            self.debugCursor.insertTable(1, rows, format)
+        scroll = self.debugText.verticalScrollBar()
+        for arg, size in args:
+            if arg:
+                self.debugCursor.insertText(arg)
+                self.debugCursor.movePosition(QtGui.QTextCursor.NextCell)
+                scroll.setSliderPosition(scroll.maximum())
+
+    def debugEmitter(self, args, append=False):
+        """Debug signal to allow threaded debug infos.
+        """
+        self.debugSignal.emit(args, append)
 
     def displayImage(self, img):
         """Display numpy 'img' in 'mediaLabel'.
         """
         # Detect on full size image
-        table = { k: param for (k, param) in self.classifiersParameters.iteritems() }
-        table = self.classifiersParameters
-        tree = common.getObjectsTree(self.objectsTree, table)
-        rectsTree = self.detector.detect(img, tree)
+        tree = common.getObjectsTree(self.objectsTree,  self.classifiersParameters)
 
+        equalizeHist = self.equalizeHist.isChecked()
+        rectsTree = self.detector.detect(img, tree, equalizeHist, self.debugEmitter)
+        displayMode = self.__displayModes[self.displayCBox.currentIndex()]
+        if displayMode == self.DISPLAY_PREPROCESSED:
+            img = self.detector.preprocessed
         pixmap = common.np2Qt(img)
         w = float(pixmap.width())
         # Scale image
@@ -222,16 +265,11 @@ class Window(QWidget, WindowUI):
         """
         return self.__sourceModes[self.sourceCBox.currentIndex()]
 
-    def updateClassifierParameters(self, name=None, color=None):
+    def getCurrentClassifierParameters(self):
         index = self.objectsTree.currentIndex()
         item = index.model().itemFromIndex(index)
-        base, oldName, oldColor = self.classifiersParameters[item.data()]
-        if name:
-            item.setText(name)
-            self.classifiersParameters[item.data()] = (base, name, oldColor)
-        if color:
-            item.setIcon(self.getIcon(color))
-            self.classifiersParameters[item.data()] = (base, oldName, color)
+        param = self.classifiersParameters[item.data()]
+        return item, param
 
     ########################################################
     # Signals handlers
@@ -286,6 +324,43 @@ class Window(QWidget, WindowUI):
             common.setPickerColor(color, self.colorPicker)
             self.updateClassifierParameters(color=color)
 
+    def updateClassifierParameters(self, name=None, color=None):
+        """Update classifier parameters.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        if name:
+            item.setText(name)
+            param.name = name
+        if color:
+            item.setIcon(self.getIcon(color))
+            param.color = color
+
+    def updateScaleFactor(self, value):
+        """Update scale factor classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.scaleFactor = value
+
+    def updateMinNeighbors(self, value):
+        """Update min neighbors classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.minNeighbors = value
+
+    def updateMinWidth(self, value):
+        """Update minimum width classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        w, h = param.minSize
+        param.minSize = (value, h)
+
+    def updateMinHeight(self, value):
+        """Update minimum height classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        w, h = param.minSize
+        param.minSize = (w, value)
+
     def showClassifierParameters(self, selected, deselected):
         """Show the selected classifier parameters.
         """
@@ -294,10 +369,15 @@ class Window(QWidget, WindowUI):
             self.parametersBox.setEnabled(True)
             index = self.objectsTree.currentIndex()
             item = index.model().itemFromIndex(index)
-            base, name, color = self.classifiersParameters[item.data()]
-            self.classifierName.setText(name)
-            common.setPickerColor(color, self.colorPicker)
-            self.classifierType.setText('(' + base + ')')
+            param = self.classifiersParameters[item.data()]
+            self.classifierName.setText(param.name)
+            common.setPickerColor(param.color, self.colorPicker)
+            self.classifierType.setText('(' + param.classifier + ')')
+            self.scaleFactor.setValue(param.scaleFactor)
+            self.minNeighbors.setValue(param.minNeighbors)
+            w, h = param.minSize
+            self.minWidth.setValue(w)
+            self.minHeight.setValue(h)
         else:
             self.parametersBox.setEnabled(False)
 

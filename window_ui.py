@@ -4,18 +4,20 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:06:25 2014 (+0200)
-# Last-Updated: Thu Jul 17 16:04:32 2014 (+0200)
+# Last-Updated: Fri Jul 18 15:35:27 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 122
+#     Update #: 188
 #
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QApplication, QWidget, QFileDialog, QPushButton,
                              QHBoxLayout, QVBoxLayout, QDesktopWidget, QScrollArea,
-                             QLabel, QLineEdit, QListWidget, QComboBox,
-                             QSplitter, QGroupBox, QTextEdit, QAbstractItemView)
+                             QLabel, QLineEdit, QListWidget, QComboBox, QDoubleSpinBox,
+                             QSplitter, QGroupBox, QTextEdit, QAbstractItemView,
+                             QSpinBox, QCheckBox)
 
 from PyQt5.QtGui import QIcon, QDropEvent, QDragMoveEvent
+from PyQt5.QtCore import QLocale
 
 class QTreeView(QtWidgets.QTreeView):
     customSelectionChanged = QtCore.pyqtSignal(QtCore.QItemSelection, QtCore.QItemSelection)
@@ -132,21 +134,77 @@ class WindowUI():
         hcolor.addWidget(self.colorPicker)
         hcolor.addStretch(1)
 
+        vlabel = QVBoxLayout()
+        vparam = QVBoxLayout()
+
+        self.scaleFactor = QDoubleSpinBox()
+        self.scaleFactor.setMaximumWidth(65)
+        self.scaleFactor.setLocale(QLocale(QLocale.English, QLocale.UnitedStates));
+        self.scaleFactor.setSingleStep(.1)
+        self.scaleFactor.setDecimals(2)
+        self.scaleFactor.setMinimum(1.1)
+        self.minNeighbors = QSpinBox()
+        self.minNeighbors.setMaximumWidth(65)
+        self.minWidth = QSpinBox()
+        self.minHeight = QSpinBox()
+
+        hminSize = QHBoxLayout()
+        hminSize.addWidget(self.minWidth)
+        hminSize.addWidget(QLabel(self.tr('x')))
+        hminSize.addWidget(self.minHeight)
+        hminSize.addStretch(1)
+
+        vlabel.addWidget(QLabel(self.tr('Scale factor')))
+        vlabel.addWidget(QLabel(self.tr('Min neighbors')))
+        vlabel.addWidget(QLabel(self.tr('Minimum Size')))
+
+        vparam.addWidget(self.scaleFactor)
+        vparam.addWidget(self.minNeighbors)
+        vparam.addLayout(hminSize)
+
+        hparameters = QHBoxLayout()
+        hparameters.addLayout(vlabel)
+        hparameters.addLayout(vparam)
+
         vbox = QVBoxLayout()
         vbox.addLayout(hbox)
         vbox.addLayout(hcolor)
+        vbox.addLayout(hparameters)
+        return vbox
+
+    def widgetPreprocess(self):
+        """Create classifier parameters widget.
+        """
+        hbox = QHBoxLayout()
+        self.displayCBox = QComboBox(self)
+        hbox.addWidget(QLabel(self.tr('Display')))
+        hbox.addWidget(self.displayCBox)
+        hbox.addStretch(1)
+
+        self.equalizeHist = QCheckBox(self.tr('Equalize histogram'))
+
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.equalizeHist)
         return vbox
 
     def widgetParameters(self):
         """Create parameters widget.
         """
+        preprocessBox = QGroupBox(self.tr('Pre-processing'))
+        objects = self.widgetPreprocess()
+        preprocessBox.setLayout(objects)
+
         detectBox = QGroupBox(self.tr('Detect'))
         objects = self.widgetObjectList()
         detectBox.setLayout(objects)
+
         self.parametersBox = QGroupBox(self.tr('Classifier Parameters'))
         parameters = self.widgetClassifierParameters()
         self.parametersBox.setLayout(parameters)
+
         vbox = QVBoxLayout()
+        vbox.addWidget(preprocessBox)
         vbox.addWidget(detectBox)
         vbox.addWidget(self.parametersBox)
         return vbox

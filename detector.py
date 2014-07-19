@@ -4,14 +4,24 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Thu Jul 17 17:02:56 2014 (+0200)
+# Last-Updated: Sat Jul 19 11:41:59 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 230
+#     Update #: 312
 #
 
 import cv2
 import time
 from tree import Tree, Node
+
+class ClassifierParameters:
+    def __init__(self, classifier, name, color, scaleFactor=1.3,
+                 minNeighbors=4, minSize=(0, 0)):
+        self.classifier = classifier
+        self.name = name
+        self.color = color
+        self.scaleFactor = scaleFactor
+        self.minNeighbors = minNeighbors
+        self.minSize = minSize
 
 class Detector(object):
 
@@ -54,7 +64,6 @@ class Detector(object):
         """
         tree = Tree()
         tree[Detector.FACE][Detector.EYE]
-        tree[Detector.FACE][Detector.MOUTH]
         tree[Detector.FACE][Detector.NOSE]
         return tree
 
@@ -67,40 +76,54 @@ class Detector(object):
         classifiers = Detector.__classifiersPaths.keys()
         return (classifiers.index(classifier) / float(len(classifiers)), 1, 1)
 
-    def preprocess(self, img):
+    def __init__(self):
+        self.preprocessed = None
+
+    def preprocess(self, img, equalizeHist):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        return cv2.equalizeHist(gray)
+        return (cv2.equalizeHist(gray) if equalizeHist else gray)
 
-    def detect(self, img, tree, scaleFactor=1.3, minNeighbors=4, minSize=(0, 0),
-               flags=cv2.cv.CV_HAAR_SCALE_IMAGE):
+    def detect(self, img, tree, equalizeHist=True, debugTable=None):
 
-        def detectTree(tree, parentRoi, roiTree):
+        def detectTree(tree, parentRoi, parentName, roiTree):
             """Recursive function to detect objects in the tree.
             """
             x, y, w, h = parentRoi
             cropped = img[y:y+h, x:x+w]
             for node, children in tree.iteritems():
-                base, name, color = node.data
-                objRects = self.detectObject(cropped, base, scaleFactor,
-                                             minNeighbors, minSize, flags)
+                param = node.data
+                if debugTable:
+                    col1 = '{} ({})'.format(param.classifier, param.name)
+                    col2 = 'detecting in {}x{} ({})...'.format(w, h, parentName)
+                    debugTable([(col1, 200), (col2, 300), ('', 200)])
+                    start = time.time()
+                objRects = self.detectObject(cropped,
+                                             param.classifier,
+                                             param.scaleFactor,
+                                             param.minNeighbors,
+                                             param.minSize,
+                                             cv2.cv.CV_HAAR_SCALE_IMAGE)
+                if debugTable:
+                    end = time.time()
+                    col = '{} found in {:.2f} s'.format(len(objRects),
+                                                        end - start)
+                    debugTable([(col, 0)], append=True)
                 for roi in objRects:
-                    roiNode = Node(base, (roi, name, color))
+                    roiNode = Node(param.classifier, (roi, param.name, param.color))
                     roiTree[roiNode]
-                    detectTree(children, roi, roiTree[roiNode])
+                    name = parentName + ' > ' + param.name
+                    detectTree(children, roi, name, roiTree[roiNode])
 
+        img = self.preprocess(img, equalizeHist)
+        self.preprocessed = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         h, w = img.shape[:2]
         roiTree = Tree()
-        detectTree(tree, (0, 0, w, h), roiTree)
+        detectTree(tree, (0, 0, w, h), 'Root', roiTree)
         return roiTree
 
     def detectObject(self, img, obj, scaleFactor, minNeighbors, minSize, flags):
-        print '{} detecting...'.format(obj),
-        start = time.time()
         cascade = cv2.CascadeClassifier(self.__classifiersPaths[obj])
-        img = self.preprocess(img)
         rects = cascade.detectMultiScale(img, [], [], scaleFactor=scaleFactor,
                                               minNeighbors=minNeighbors,
                                               minSize=minSize, flags=flags)
-        end = time.time()
-        print 'in {:.2f} s'.format(end - start)
         return rects

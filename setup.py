@@ -6,13 +6,17 @@ Usage: python setup.py py2app
 
 from setuptools import setup
 
-APP = ['detection.py']
-DATA_FILES = []
+APP_NAME = 'Detection'
+APP_VERSION = '0.1.0'
+APP_SCRIPT_NAME = '{}.py'.format(APP_NAME.lower())
+
+APP = [APP_SCRIPT_NAME]
+DATA_FILES = ['--icon-file']
 OPTIONS = {'argv_emulation': True, 'includes': ['PyQt5'],
            'plist': {'CFBundleShortVersionString':'0.1.0',},
            'iconfile':'icon.icns'}
 
-setup(name='Detection',
+setup(name=APP_NAME,
     app=APP,
     data_files=DATA_FILES,
     options={'py2app': OPTIONS},
