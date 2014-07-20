@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Sat Jul 19 11:46:04 2014 (+0200)
+# Last-Updated: Sun Jul 20 21:44:36 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 1546
+#     Update #: 1642
 #
 
 import sys
@@ -56,7 +56,6 @@ class VideoThread(QtCore.QThread):
             if self.stopped:
                 break
             self.capture = cv2.VideoCapture(path)
-            fps = self.capture.get(cv2.cv.CV_CAP_PROP_FPS)
 
             if not self.capture.isOpened():
                 print "Couldn't read movie file " + path
@@ -100,8 +99,12 @@ class Window(QWidget, WindowUI):
     DISPLAY_INPUT = 'Input'
     DISPLAY_PREPROCESSED = 'Pre-processed'
 
+    SHAPE_RECT = 'Rectangle'
+    SHAPE_ELLIPSE = 'Ellipse'
+
     __sourceModes = [SOURCE_IMAGE, SOURCE_VIDEO, SOURCE_CAMERA]
     __displayModes = [DISPLAY_INPUT, DISPLAY_PREPROCESSED]
+    __shapeModes = [SHAPE_RECT, SHAPE_ELLIPSE]
 
     debugSignal = QtCore.pyqtSignal(object, int)
 
@@ -112,6 +115,7 @@ class Window(QWidget, WindowUI):
         self.videoThread = VideoThread(self)
         sys.stdout = common.EmittingStream(textWritten=self.normalOutputWritten)
         self.debugSignal.connect(self.debugTable)
+        self.currentFrame = None
 
         self.classifiersParameters = {}
 
@@ -133,6 +137,8 @@ class Window(QWidget, WindowUI):
             self.sourceCBox.addItem(sourceMode)
         for displayMode in self.__displayModes:
             self.displayCBox.addItem(displayMode)
+        for shapeMode in self.__shapeModes:
+            self.shapeCBox.addItem(shapeMode)
         model = QtGui.QStandardItemModel(self)
         func = lambda node, parent: self.populateTree(node, parent)
         Detector.getDefaultObjectsTree().map(model, func)
@@ -154,6 +160,9 @@ class Window(QWidget, WindowUI):
         self.minNeighbors.valueChanged.connect(self.updateMinNeighbors)
         self.minWidth.valueChanged.connect(self.updateMinWidth)
         self.minHeight.valueChanged.connect(self.updateMinHeight)
+        self.shapeCBox.currentIndexChanged.connect(self.updateShape)
+        self.blur.stateChanged.connect(self.updateBlur)
+        self.autoNeighbors.clicked.connect(self.calcNeighbors)
 
     def initUI(self):
         self.showClassifierParameters(None, None)
@@ -176,9 +185,24 @@ class Window(QWidget, WindowUI):
         color = QColor()
         color.setHsvF(h, s, v)
         item.setIcon(self.getIcon(color))
-        self.classifiersParameters[item.data()] = ClassifierParameters(node, node, color)
+        self.classifiersParameters[item.data()] = ClassifierParameters(node, node,
+                                                                       color, self.SHAPE_RECT)
         parent.appendRow(item)
         return item
+
+    def getBlur(self, pixmap, x, y, w, h, shape):
+        mask = QPixmap(pixmap.width(), pixmap.height())
+        mask.fill(QtCore.Qt.transparent);
+        painter = QtGui.QPainter(mask)
+        path = QtGui.QPainterPath()
+        if shape == self.SHAPE_ELLIPSE:
+            path.addEllipse(x, y, w, h)
+            painter.fillPath(path, QtGui.QColor(0, 0, 0))
+        elif shape == self.SHAPE_RECT:
+            painter.fillRect(x, y, w, h, QtGui.QColor(0, 0, 0))
+        painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceAtop)
+        painter.drawPixmap(0, 0, common.blurPixmap(pixmap, 20))
+        return mask
 
     def drawRects(self, pixmap, rectsTree, scale):
         """Draw rectangles in 'rectsTree' on 'pixmap'.
@@ -186,13 +210,21 @@ class Window(QWidget, WindowUI):
         painter = QtGui.QPainter(pixmap)
 
         def drawRect(node, parentRoi):
-            roi, name, color = node.data
+            roi, param = node.data
             x, y, w, h = common.scaleRect(roi, scale)
             cx, cy, cw, ch = parentRoi
-            painter.setPen(color)
-            painter.drawText(x + cx, y + cy, name)
-            painter.drawRect(x + cx, y + cy, w, h)
-            return (x + cx, y + cy, w, h)
+            painter.setPen(param.color)
+            x, y = cx + x, cy + y
+            if param.blur:
+                blurred = self.getBlur(pixmap, x, y, w, h, param.shape)
+                painter.drawPixmap(0, 0, blurred)
+            else:
+                painter.drawText(x, y, param.name)
+                drawFunc = painter.drawRect
+                if param.shape == self.SHAPE_ELLIPSE:
+                    drawFunc = painter.drawEllipse
+                drawFunc(x, y, w, h)
+            return (x, y, w, h)
 
         h, w = pixmap.height(), pixmap.width()
         rectsTree.map((0, 0, w, h), drawRect)
@@ -223,14 +255,22 @@ class Window(QWidget, WindowUI):
         """
         self.debugSignal.emit(args, append)
 
-    def displayImage(self, img):
+    def displayImage(self, img, autoNeighbors=False):
         """Display numpy 'img' in 'mediaLabel'.
         """
+        self.currentFrame = img
+        item = None
+        if autoNeighbors:
+            indexes = self.objectsTree.selectedIndexes()
+            if indexes:
+                item = self.objectsTree.model().itemFromIndex(indexes[0])
         # Detect on full size image
-        tree = common.getObjectsTree(self.objectsTree,  self.classifiersParameters)
-
+        tree, extracted = common.getObjectsTree(self.objectsTree,
+                                                self.classifiersParameters,
+                                                item)
         equalizeHist = self.equalizeHist.isChecked()
-        rectsTree = self.detector.detect(img, tree, equalizeHist, self.debugEmitter)
+        rectsTree = self.detector.detect(img, tree, equalizeHist,
+                                         self.debugEmitter, extracted)
         displayMode = self.__displayModes[self.displayCBox.currentIndex()]
         if displayMode == self.DISPLAY_PREPROCESSED:
             img = self.detector.preprocessed
@@ -324,6 +364,14 @@ class Window(QWidget, WindowUI):
             common.setPickerColor(color, self.colorPicker)
             self.updateClassifierParameters(color=color)
 
+    def calcNeighbors(self):
+        if self.videoThread.isRunning():
+            self.videoThread.stop()
+        self.videoThread.clean()
+        self.displayImage(self.currentFrame, autoNeighbors=True)
+        self.showClassifierParameters(None, None)
+        self.refresh()
+
     def updateClassifierParameters(self, name=None, color=None):
         """Update classifier parameters.
         """
@@ -340,6 +388,18 @@ class Window(QWidget, WindowUI):
         """
         item, param = self.getCurrentClassifierParameters()
         param.scaleFactor = value
+
+    def updateShape(self, index):
+        """Update shape classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.shape = self.__shapeModes[index]
+
+    def updateBlur(self, checked):
+        """Update blur classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.blur = checked
 
     def updateMinNeighbors(self, value):
         """Update min neighbors classifier parameter.
@@ -378,6 +438,8 @@ class Window(QWidget, WindowUI):
             w, h = param.minSize
             self.minWidth.setValue(w)
             self.minHeight.setValue(h)
+            self.shapeCBox.setCurrentIndex(self.__shapeModes.index(param.shape))
+            self.blur.setChecked(param.blur)
         else:
             self.parametersBox.setEnabled(False)
 
@@ -427,6 +489,7 @@ class Window(QWidget, WindowUI):
 def main():
 
     app = QApplication(sys.argv)
+    QApplication.addLibraryPath(QApplication.applicationDirPath() + "/../PlugIns")
     main = Window()
     main.setWindowTitle('Detection')
     main.show()

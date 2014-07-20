@@ -4,18 +4,18 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:11:21 2014 (+0200)
-# Last-Updated: Thu Jul 17 13:07:33 2014 (+0200)
+# Last-Updated: Sun Jul 20 19:48:35 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 34
+#     Update #: 106
 #
 
 import cv2
 import os
 import urllib2
 import numpy as np
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QDesktopWidget
+from PyQt5.QtWidgets import QDesktopWidget, QLabel, QGraphicsBlurEffect, QGraphicsPixmapItem
 
 from tree import Tree
 
@@ -51,20 +51,33 @@ def fitImageToScreen(pixmap):
     h = min(pixmap.height(), h)
     return pixmap.scaled(QtCore.QSize(w, h), QtCore.Qt.KeepAspectRatio)
 
+def blurPixmap(pixmap, radius):
+    effect = QGraphicsBlurEffect()
+    effect.setBlurRadius(radius)
+    buffer = QPixmap(pixmap)
+    item = QGraphicsPixmapItem(buffer)
+    item.setGraphicsEffect(effect)
+    output = QPixmap(pixmap.width(), pixmap.height())
+    painter = QtGui.QPainter(output)
+    scene = QtWidgets.QGraphicsScene()
+    view = QtWidgets.QGraphicsView(scene)
+    scene.addItem(item)
+    scene.render(painter)
+    return output
+
 def scaleRect(rect, scale):
     """Scale 'rect' with a factor of 'scale'.
     """
     x, y, w, h = rect
     return (x * scale, y * scale, w * scale, h * scale)
 
-
-def getObjectsTree(qTreeView, table):
+def getObjectsTree(qTreeView, table, extract):
     """Create an object tree representation from QTreeView.
     """
     tree = Tree()
     model = qTreeView.model()
-    tree.fromQStandardItemModel(model, table)
-    return tree
+    extracted = tree.fromQStandardItemModel(model, table, extract)
+    return tree, extracted
 
 def readImage(path):
     """Load image from path.
@@ -78,7 +91,7 @@ def readImage(path):
         try:
             req = urllib2.urlopen(path)
             arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-            img = cv2.imdecode(arr, cv2.CV_LOAD_IMAGE_COLOR)
+            img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
         except ValueError:
             raise Exception, 'File not found ' + path
         except urllib2.HTTPError as err:

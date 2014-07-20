@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 16:20:49 2014 (+0200)
-# Last-Updated: Thu Jul 17 17:03:55 2014 (+0200)
+# Last-Updated: Sun Jul 20 20:47:05 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 44
+#     Update #: 70
 #
 
 from collections import defaultdict
@@ -27,20 +27,30 @@ class Tree(defaultdict):
         for node, children in self.iteritems():
             children.map(func(node, param), func)
 
-    def fromQStandardItemModel(self, model, table):
-        def getChildren(node):
+    def fromQStandardItemModel(self, model, table, extract):
+        self.extracted = None
+        def getChildren(node, extract):
             """Return the children tree of node.
             """
             tree = Tree()
             childCount = node.rowCount()
             for i in xrange(childCount):
                 child = node.child(i)
-                tree[Node(child.text(), table[child.data()])] = getChildren(child)
+                treeNode = Node(child.text(), table[child.data()])
+                if child == extract:
+                    self.extracted = treeNode
+                tree[treeNode] = getChildren(child, extract)
             return tree
+
 
         for i in xrange(model.rowCount()):
             rootItem = model.itemFromIndex(model.index(i, 0))
-            self[Node(rootItem.text(), table[rootItem.data()])] = getChildren(rootItem)
+            node = Node(rootItem.text(), table[rootItem.data()])
+            if rootItem == extract:
+                self.extracted = node
+            self[node] = getChildren(rootItem, extract)
+
+        return self.extracted
 
 class Node:
     def __init__(self, name, data=None):
@@ -51,8 +61,6 @@ class Node:
         return hash((self.name, str(self.data)))
 
     def __eq__(self, other):
-        print self.name, self.data
-        print other.name, other.data
         return (self.name == other.name) and (self.data == other.data)
 
     def __repr__(self):

@@ -4,24 +4,27 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Sat Jul 19 11:41:59 2014 (+0200)
+# Last-Updated: Sun Jul 20 20:55:00 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 312
+#     Update #: 378
 #
 
 import cv2
+import numpy as np
 import time
 from tree import Tree, Node
 
 class ClassifierParameters:
-    def __init__(self, classifier, name, color, scaleFactor=1.3,
-                 minNeighbors=4, minSize=(0, 0)):
+    def __init__(self, classifier, name, color, shape, blur=False,
+                 scaleFactor=1.3, minNeighbors=4, minSize=(0, 0)):
         self.classifier = classifier
+        self.shape = shape
         self.name = name
         self.color = color
         self.scaleFactor = scaleFactor
         self.minNeighbors = minNeighbors
         self.minSize = minSize
+        self.blur = blur
 
 class Detector(object):
 
@@ -40,6 +43,8 @@ class Detector(object):
     RIGHTEAR = 'Right ear'
     MOUTH = 'Mouth'
     PROFILFACE = 'Profil face'
+    DUCKSMALL_LBP = 'Duck small LBP'
+    DUCKBIG_LBP = 'Duck big LBP'
 
     __classifiersPaths = { FACE: 'haarcascades/haarcascade_frontalface_alt.xml',
                            EYE: 'haarcascades/haarcascade_eye.xml',
@@ -56,6 +61,8 @@ class Detector(object):
                            RIGHTEAR: 'haarcascades/haarcascade_mcs_rightear.xml',
                            MOUTH: 'haarcascades/haarcascade_mcs_mouth.xml',
                            PROFILFACE: 'haarcascades/haarcascade_profileface.xml',
+                           DUCKSMALL_LBP: 'haarcascades/duck_25x24.xml',
+                           DUCKBIG_LBP: 'haarcascades/duck_50x48.xml',
                            }
 
     @staticmethod
@@ -83,7 +90,7 @@ class Detector(object):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return (cv2.equalizeHist(gray) if equalizeHist else gray)
 
-    def detect(self, img, tree, equalizeHist=True, debugTable=None):
+    def detect(self, img, tree, equalizeHist=True, debugTable=None, autoNeighbors=None):
 
         def detectTree(tree, parentRoi, parentName, roiTree):
             """Recursive function to detect objects in the tree.
@@ -92,24 +99,33 @@ class Detector(object):
             cropped = img[y:y+h, x:x+w]
             for node, children in tree.iteritems():
                 param = node.data
-                if debugTable:
-                    col1 = '{} ({})'.format(param.classifier, param.name)
-                    col2 = 'detecting in {}x{} ({})...'.format(w, h, parentName)
-                    debugTable([(col1, 200), (col2, 300), ('', 200)])
-                    start = time.time()
-                objRects = self.detectObject(cropped,
-                                             param.classifier,
-                                             param.scaleFactor,
-                                             param.minNeighbors,
-                                             param.minSize,
-                                             cv2.cv.CV_HAAR_SCALE_IMAGE)
-                if debugTable:
-                    end = time.time()
-                    col = '{} found in {:.2f} s'.format(len(objRects),
+                incNeighbors = True
+                while incNeighbors:
+                    if debugTable and not autoNeighbors:
+                        col1 = '{} ({})'.format(param.classifier, param.name)
+                        col2 = 'detecting in {}x{} ({})...'.format(w, h, parentName)
+                        debugTable([(col1, 200), (col2, 300), ('', 200)])
+                        start = time.time()
+                    objRects = self.detectObject(cropped,
+                                                 param.classifier,
+                                                 param.scaleFactor,
+                                                 param.minNeighbors,
+                                                 param.minSize,
+                                                 cv2.CASCADE_SCALE_IMAGE)
+
+                    if debugTable and not autoNeighbors:
+                        end = time.time()
+                        col = '{} found in {:.2f} s'.format(len(objRects),
                                                         end - start)
-                    debugTable([(col, 0)], append=True)
+                        debugTable([(col, 0)], append=True)
+
+                    if autoNeighbors and node == autoNeighbors and isinstance(objRects, np.ndarray) and objRects.any():
+                        param.minNeighbors += 1
+                    else:
+                        incNeighbors = False
+
                 for roi in objRects:
-                    roiNode = Node(param.classifier, (roi, param.name, param.color))
+                    roiNode = Node(param.classifier, (roi, param))
                     roiTree[roiNode]
                     name = parentName + ' > ' + param.name
                     detectTree(children, roi, name, roiTree[roiNode])
@@ -123,7 +139,10 @@ class Detector(object):
 
     def detectObject(self, img, obj, scaleFactor, minNeighbors, minSize, flags):
         cascade = cv2.CascadeClassifier(self.__classifiersPaths[obj])
-        rects = cascade.detectMultiScale(img, [], [], scaleFactor=scaleFactor,
+        if cascade.empty():
+            print "Classifier error for {}".format(obj)
+            return []
+        rects = cascade.detectMultiScale(img, scaleFactor=scaleFactor,
                                               minNeighbors=minNeighbors,
-                                              minSize=minSize, flags=flags)
+                                              flags=flags, minSize=minSize)
         return rects

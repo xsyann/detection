@@ -269,6 +269,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="getBlur"></a><span class="summary-sig-name">getBlur</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">x</span>,
+        <span class="summary-sig-arg">y</span>,
+        <span class="summary-sig-arg">w</span>,
+        <span class="summary-sig-arg">h</span>,
+        <span class="summary-sig-arg">shape</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.getBlur">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="drawRects"></a><span class="summary-sig-name">drawRects</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">pixmap</span>,
         <span class="summary-sig-arg">rectsTree</span>,
@@ -328,7 +350,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="displayImage"></a><span class="summary-sig-name">displayImage</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">img</span>)</span><br />
+        <span class="summary-sig-arg">img</span>,
+        <span class="summary-sig-arg">autoNeighbors</span>=<span class="summary-sig-default">False</span>)</span><br />
       Display numpy 'img' in 'mediaLabel'.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.displayImage">source&nbsp;code</a></span>
@@ -483,6 +506,22 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="calcNeighbors"></a><span class="summary-sig-name">calcNeighbors</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.calcNeighbors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="updateClassifierParameters"></a><span class="summary-sig-name">updateClassifierParameters</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">color</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -507,6 +546,42 @@
       Update scale factor classifier parameter.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateScaleFactor">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="updateShape"></a><span class="summary-sig-name">updateShape</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">index</span>)</span><br />
+      Update shape classifier parameter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateShape">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="updateBlur"></a><span class="summary-sig-name">updateBlur</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">checked</span>)</span><br />
+      Update blur classifier parameter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateBlur">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1040,6 +1115,20 @@
         <a name="DISPLAY_PREPROCESSED"></a><span class="summary-name">DISPLAY_PREPROCESSED</span> = <code title="'Pre-processed'"><code class="variable-quote">'</code><code class="variable-string">Pre-processed</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="SHAPE_RECT"></a><span class="summary-name">SHAPE_RECT</span> = <code title="'Rectangle'"><code class="variable-quote">'</code><code class="variable-string">Rectangle</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="SHAPE_ELLIPSE"></a><span class="summary-name">SHAPE_ELLIPSE</span> = <code title="'Ellipse'"><code class="variable-quote">'</code><code class="variable-string">Ellipse</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -1052,6 +1141,13 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="__displayModes"></a><span class="summary-name">__displayModes</span> = <code title="['Input', 'Pre-processed']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Input</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Pre-processed</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__shapeModes"></a><span class="summary-name">__shapeModes</span> = <code title="['Rectangle', 'Ellipse']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Rectangle</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ellipse</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
     </td>
   </tr>
   <tr>
@@ -1179,7 +1275,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sat Jul 19 13:46:39 2014
+    on Sun Jul 20 21:44:46 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

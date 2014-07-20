@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:06:25 2014 (+0200)
-# Last-Updated: Fri Jul 18 15:35:27 2014 (+0200)
+# Last-Updated: Sun Jul 20 19:29:15 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 188
+#     Update #: 208
 #
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -129,10 +129,14 @@ class WindowUI():
         color = QtGui.QColor(0, 0, 0)
         self.colorPicker = QPushButton('')
         self.colorPicker.setMaximumSize(QtCore.QSize(16, 16))
+        self.shapeCBox = QComboBox(self)
         hcolor = QHBoxLayout()
-        hcolor.addWidget(QLabel(self.tr('Display color')))
+        hcolor.addWidget(QLabel(self.tr('Display')))
+        hcolor.addWidget(self.shapeCBox)
         hcolor.addWidget(self.colorPicker)
         hcolor.addStretch(1)
+
+        self.blur = QCheckBox(self.tr('Blur'))
 
         vlabel = QVBoxLayout()
         vparam = QVBoxLayout()
@@ -145,8 +149,12 @@ class WindowUI():
         self.scaleFactor.setMinimum(1.1)
         self.minNeighbors = QSpinBox()
         self.minNeighbors.setMaximumWidth(65)
+        self.minNeighbors.setMaximum(1500)
         self.minWidth = QSpinBox()
+        self.minWidth.setMaximum(1500)
         self.minHeight = QSpinBox()
+        self.minHeight.setMaximum(1500)
+        self.autoNeighbors = QPushButton(self.tr("Auto"))
 
         hminSize = QHBoxLayout()
         hminSize.addWidget(self.minWidth)
@@ -158,8 +166,12 @@ class WindowUI():
         vlabel.addWidget(QLabel(self.tr('Min neighbors')))
         vlabel.addWidget(QLabel(self.tr('Minimum Size')))
 
+        hNeighbors = QHBoxLayout()
+        hNeighbors.addWidget(self.minNeighbors)
+        hNeighbors.addWidget(self.autoNeighbors)
+
         vparam.addWidget(self.scaleFactor)
-        vparam.addWidget(self.minNeighbors)
+        vparam.addLayout(hNeighbors)
         vparam.addLayout(hminSize)
 
         hparameters = QHBoxLayout()
@@ -169,6 +181,7 @@ class WindowUI():
         vbox = QVBoxLayout()
         vbox.addLayout(hbox)
         vbox.addLayout(hcolor)
+        vbox.addWidget(self.blur)
         vbox.addLayout(hparameters)
         return vbox
 

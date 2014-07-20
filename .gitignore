@@ -55,3 +55,9 @@ docs/_build/
 # Misc
 .DS_Store
 *~
+tex/
+illum/
+classifier
+positives*
+samples*
+negatives*
