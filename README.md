@@ -16,9 +16,7 @@ Object detection using OpenCV Haar Feature-based Cascade Classifiers
 
 ### Requirements
   
-    cv2, numpy, urllib2, PyQt5
-    
-Matplotlib Qt5 compatibility: https://github.com/matplotlib/matplotlib/pull/3072
+    cv2, numpy, PyQt5
 
 ### Features
 
