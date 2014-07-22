@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Tue Jul 22 13:37:09 2014 (+0200)
+# Last-Updated: Tue Jul 22 15:03:20 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 1830
+#     Update #: 1840
 #
 
 import sys
@@ -28,22 +28,22 @@ from detector import Detector, ClassifierParameters
 import common
 from tree import Tree
 
-class VideoThread(QtCore.QThread):
+class MediaThread(QtCore.QThread):
     def __init__(self, mw):
-        super(VideoThread, self).__init__(mw)
+        super(MediaThread, self).__init__(mw)
         self.mw = mw
         self.stopped = False
         self.capture = None
         self.mutex = QtCore.QMutex()
 
     def stop(self):
-        """Stop video thread.
+        """Stop media thread.
         """
         with QtCore.QMutexLocker(self.mutex):
             self.stopped = True
 
     def clean(self):
-        """Clean video thread.
+        """Clean media thread.
         """
         self.wait()
         del self.capture
@@ -58,7 +58,7 @@ class VideoThread(QtCore.QThread):
             self.capture = cv2.VideoCapture(path)
 
             if not self.capture.isOpened():
-                print "Couldn't read movie file " + path
+                print "Couldn't read media " + path
                 break
             while self.capture.isOpened():
                 if self.stopped:
@@ -80,7 +80,7 @@ class VideoThread(QtCore.QThread):
             self.stopped = False
 
         mode = self.mw.getSourceMode()
-        if mode == self.mw.SOURCE_VIDEO:
+        if mode == self.mw.SOURCE_FILE:
             path = self.mw.sourcePath.text()
             if not path:
                 print 'File path is empty'
@@ -92,8 +92,7 @@ class VideoThread(QtCore.QThread):
 
 class Window(QWidget, WindowUI):
 
-    SOURCE_IMAGE = 'Image'
-    SOURCE_VIDEO = 'Video'
+    SOURCE_FILE = 'File'
     SOURCE_CAMERA = 'Camera'
 
     DISPLAY_INPUT = 'Input'
@@ -108,7 +107,7 @@ class Window(QWidget, WindowUI):
     FILL_IMAGE = 'Image'
     FILL_MASK = 'Mask'
 
-    __sourceModes = [SOURCE_IMAGE, SOURCE_VIDEO, SOURCE_CAMERA]
+    __sourceModes = [SOURCE_FILE, SOURCE_CAMERA]
     __displayModes = [DISPLAY_INPUT, DISPLAY_PREPROCESSED]
     __shapeModes = [SHAPE_RECT, SHAPE_ELLIPSE]
     __fillModes = [FILL_TRANSPARENT, FILL_BLUR, FILL_IMAGE, FILL_MASK, FILL_COLOR]
@@ -119,7 +118,7 @@ class Window(QWidget, WindowUI):
         super(Window, self).__init__(parent)
 
         self.detector = Detector()
-        self.videoThread = VideoThread(self)
+        self.mediaThread = MediaThread(self)
         sys.stdout = common.EmittingStream(textWritten=self.normalOutputWritten)
         self.debugSignal.connect(self.debugTable)
         self.currentFrame = None
@@ -353,18 +352,10 @@ class Window(QWidget, WindowUI):
     def displayMedia(self, path):
         """Load and display media.
         """
-        sourceMode = self.getSourceMode()
-        if self.videoThread.isRunning():
-            self.videoThread.stop()
-        self.videoThread.clean()
-        try:
-            if sourceMode == self.SOURCE_IMAGE:
-                img = common.readImage(path)
-                self.displayImage(img)
-            elif sourceMode == self.SOURCE_VIDEO or sourceMode == self.SOURCE_CAMERA:
-                self.videoThread.start()
-        except common.CustomException as err:
-            print '[Error]', err
+        if self.mediaThread.isRunning():
+            self.mediaThread.stop()
+        self.mediaThread.clean()
+        self.mediaThread.start()
 
     def getSourceMode(self):
         """Return the current source mode.
@@ -414,11 +405,7 @@ class Window(QWidget, WindowUI):
         """Load image or video.
         """
         filters = ""
-        sourceMode = self.getSourceMode()
-        if sourceMode == self.SOURCE_IMAGE:
-            filters = self.tr('Image (*.jpg *.png *.jpeg *.bmp)')
-        if sourceMode == self.SOURCE_VIDEO:
-            filters = self.tr('Video (*.avi *.mp4 *.mov)')
+        filters = self.tr('Image (*.jpg *.png *.jpeg *.bmp *.avi *.mp4 *.mov)')
         path, filters = QFileDialog.getOpenFileName(self, self.tr('Open file'), '.',
                                                     filters)
         if path:
@@ -447,9 +434,9 @@ class Window(QWidget, WindowUI):
             self.updateClassifierParameters(color=color)
 
     def calcNeighbors(self):
-        if self.videoThread.isRunning():
-            self.videoThread.stop()
-        self.videoThread.clean()
+        if self.mediaThread.isRunning():
+            self.mediaThread.stop()
+        self.mediaThread.clean()
         self.displayImage(self.currentFrame, autoNeighbors=True,
                           autoNeighborsParam=self.autoNeighborsParam.value())
         self.showClassifierParameters(None, None)

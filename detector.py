@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Tue Jul 22 12:05:08 2014 (+0200)
+# Last-Updated: Tue Jul 22 19:10:11 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 580
+#     Update #: 608
 #
 
 import cv2
@@ -104,36 +104,28 @@ class Detector(object):
         x2, y2, w2, h2 = b
         return np.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2))
 
-    def getDistances(self, rect, rects):
-        distances = []
-        for rectItem in rects:
-            dist = self.dist(rect, rectItem)
-            distances.append((dist, rectItem))
-        distances.sort()
-        return distances
+    def getNearest(self, rect, rects):
+        nearest, dist = None, 0
+        for r in rects:
+            d = self.dist(r, rect)
+            if nearest is None or d < dist:
+                nearest, dist = r, d
+        return nearest
 
     def retreiveRect(self, rect, current, previous):
-        distances = self.getDistances(rect, current)
-        if not distances:
-            return None
-        nearestDist, nearestRect = distances[0]
-        exclude = []
-        i = 0
-        while i < len(previous):
-            prev, hash = previous[i]
-            if not np.array_equal(prev, rect) and not i in exclude:
-                dist = self.dist(prev, nearestRect)
-                if dist < nearestDist:
-                    exclude.append(i)
-                    del distances[0]
-                    if not distances:
-                        return None
-                    nearestDist, nearestRect = distances[0]
-                    i = 0
-                    continue
-            i += 1
-
-        return nearestRect
+        nearest = self.getNearest(rect, current)
+        previous = list(zip(*previous)[0])
+        current = list(current)
+        near = None
+        while previous and nearest:
+            near = self.getNearest(nearest, previous)
+            if near != rect:
+                previous.remove(near)
+                current.remove(nearest)
+                nearest = self.getNearest(rect, current)
+            else:
+                return nearest
+        return nearest
 
     def retreiveRects(self, current, previous):
         rects, hashs = [], []

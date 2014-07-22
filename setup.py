@@ -11,6 +11,7 @@ from sys import platform
 NAME = "Detection"
 VERSION = "0.1"
 MAIN = "detection.py"
+ICON = "icon.icns"
 
 PWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -22,14 +23,14 @@ if platform == "darwin":
         options=dict(
             py2app=dict(
                 argv_emulation=True,
-                iconfile='icon.icns',
-                includes=['sip', 'PyQt5', 'PyQt5.QtCore',
+                iconfile=ICON,
+                includes=['PyQt5', 'PyQt5.QtCore',
                           'PyQt5.QtGui', 'PyQt5.QtWidgets'],
-                resources=['other/qt.conf', 'haarcascades'],
+                resources=['haarcascades'],
                 plist=dict(
                     CFBundleName=NAME,
                     CFBundleShortVersionString=VERSION,
-                    CFBundleIconFile='icon.icns'
+                    CFBundleIconFile=ICON
                     )
                 )
             )
@@ -50,6 +51,7 @@ if __name__ == "__main__":
         name=NAME,
         version=VERSION,
         author="Yann KOETH",
+        data_file=[ICON],
         **extra_options
         )
     if platform == "darwin":

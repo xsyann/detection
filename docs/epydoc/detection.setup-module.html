@@ -146,6 +146,13 @@ Usage:
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="ICON"></a><span class="summary-name">ICON</span> = <code title="'icon.icns'"><code class="variable-quote">'</code><code class="variable-string">icon.icns</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="PWD"></a><span class="summary-name">PWD</span> = <code title="'/Users/xs_yann/scm/detection'"><code class="variable-quote">'</code><code class="variable-string">/Users/xs_yann/scm/detection</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
@@ -156,11 +163,11 @@ Usage:
         <a href="detection.setup-module.html#extra_options" class="summary-name">extra_options</a> = <code title="{'app': ['detection.py'],
  'options': {'py2app': {'argv_emulation': True,
                         'iconfile': 'icon.icns',
-                        'includes': ['sip',
-                                     'PyQt5',
+                        'includes': ['PyQt5',
                                      'PyQt5.QtCore',
                                      'PyQt5.QtGui',
                                      'PyQt5.QtWidgets'],
+                        'plist': {'CFBundleIconFile': 'icon.icns', 'CF\
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">app</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">detection.py</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">options</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">py2app</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -205,11 +212,11 @@ Usage:
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">app</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">detection.py</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">options</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">py2app</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">argv_emulation</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-op">,</code>
                         <code class="variable-quote">'</code><code class="variable-string">iconfile</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">icon.icns</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                        <code class="variable-quote">'</code><code class="variable-string">includes</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">sip</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                                     <code class="variable-quote">'</code><code class="variable-string">PyQt5</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                        <code class="variable-quote">'</code><code class="variable-string">includes</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">PyQt5</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                      <code class="variable-quote">'</code><code class="variable-string">PyQt5.QtCore</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                      <code class="variable-quote">'</code><code class="variable-string">PyQt5.QtGui</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                      <code class="variable-quote">'</code><code class="variable-string">PyQt5.QtWidgets</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                        <code class="variable-quote">'</code><code class="variable-string">plist</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CFBundleIconFile</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">icon.icns</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">CF</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -249,7 +256,7 @@ Usage:
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Tue Jul 22 13:40:20 2014
+    on Tue Jul 22 20:51:43 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

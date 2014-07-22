@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-##
-## build.sh
-##
-## Made by xs_yann
-## Contact <contact@xsyann.com>
-##
-## Started on  Fri Apr 25 18:30:49 2014 xs_yann
-## Last update Sun Jul 20 21:37:04 2014 xs_yann
-##
+# build.sh
+#
+# Author: Yann KOETH
+# Created: Tue Jul 22 20:27:47 2014 (+0200)
+# Last-Updated: Tue Jul 22 20:27:54 2014 (+0200)
+#           By: Yann KOETH
+#     Update #: 2
+#
 
 # Build documentation
 epydoc --conf docs/epydoc.conf
