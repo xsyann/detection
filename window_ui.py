@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:06:25 2014 (+0200)
-# Last-Updated: Sun Jul 20 19:29:15 2014 (+0200)
+# Last-Updated: Tue Jul 22 11:57:03 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 208
+#     Update #: 250
 #
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -115,6 +115,30 @@ class WindowUI():
         hbox.addLayout(vboxAvailable)
         return hbox
 
+    def widgetClassifierDisplay(self):
+        """Create classifier display widget.
+        """
+        color = QtGui.QColor(0, 0, 0)
+        self.colorPicker = QPushButton('')
+        self.colorPicker.setMaximumSize(QtCore.QSize(16, 16))
+        self.shapeCBox = QComboBox(self)
+        self.fillCBox = QComboBox(self)
+        self.fillPath = QPushButton('...')
+        self.showName = QCheckBox(self.tr('Show Name'))
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel(self.tr('Shape')))
+        hbox.addWidget(self.shapeCBox)
+        hbox.addWidget(self.fillCBox)
+        hbox.addWidget(self.fillPath)
+        hbox.addWidget(self.colorPicker)
+        hbox.addStretch(1)
+
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.showName)
+        vbox.addLayout(hbox)
+        return vbox
+
     def widgetClassifierParameters(self):
         """Create classifier parameters widget.
         """
@@ -126,24 +150,18 @@ class WindowUI():
         hbox.addWidget(self.classifierName)
         hbox.addWidget(self.classifierType)
 
-        color = QtGui.QColor(0, 0, 0)
-        self.colorPicker = QPushButton('')
-        self.colorPicker.setMaximumSize(QtCore.QSize(16, 16))
-        self.shapeCBox = QComboBox(self)
-        hcolor = QHBoxLayout()
-        hcolor.addWidget(QLabel(self.tr('Display')))
-        hcolor.addWidget(self.shapeCBox)
-        hcolor.addWidget(self.colorPicker)
-        hcolor.addStretch(1)
-
-        self.blur = QCheckBox(self.tr('Blur'))
+        self.stabilize = QCheckBox(self.tr('Stabilize'))
+        self.tracking = QCheckBox(self.tr('Tracking'))
+        htracking = QHBoxLayout()
+        htracking.addWidget(self.stabilize)
+        htracking.addWidget(self.tracking)
 
         vlabel = QVBoxLayout()
         vparam = QVBoxLayout()
 
         self.scaleFactor = QDoubleSpinBox()
         self.scaleFactor.setMaximumWidth(65)
-        self.scaleFactor.setLocale(QLocale(QLocale.English, QLocale.UnitedStates));
+        self.scaleFactor.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
         self.scaleFactor.setSingleStep(.1)
         self.scaleFactor.setDecimals(2)
         self.scaleFactor.setMinimum(1.1)
@@ -155,6 +173,9 @@ class WindowUI():
         self.minHeight = QSpinBox()
         self.minHeight.setMaximum(1500)
         self.autoNeighbors = QPushButton(self.tr("Auto"))
+        self.autoNeighborsParam = QSpinBox()
+        self.autoNeighborsParam.setMaximum(1500)
+        self.autoNeighborsParam.setMaximumWidth(45)
 
         hminSize = QHBoxLayout()
         hminSize.addWidget(self.minWidth)
@@ -169,6 +190,8 @@ class WindowUI():
         hNeighbors = QHBoxLayout()
         hNeighbors.addWidget(self.minNeighbors)
         hNeighbors.addWidget(self.autoNeighbors)
+        hNeighbors.addWidget(self.autoNeighborsParam)
+        hNeighbors.addStretch(1)
 
         vparam.addWidget(self.scaleFactor)
         vparam.addLayout(hNeighbors)
@@ -180,8 +203,7 @@ class WindowUI():
 
         vbox = QVBoxLayout()
         vbox.addLayout(hbox)
-        vbox.addLayout(hcolor)
-        vbox.addWidget(self.blur)
+        vbox.addLayout(htracking)
         vbox.addLayout(hparameters)
         return vbox
 
@@ -212,6 +234,10 @@ class WindowUI():
         objects = self.widgetObjectList()
         detectBox.setLayout(objects)
 
+        self.displayBox = QGroupBox(self.tr('Classifier Display'))
+        display = self.widgetClassifierDisplay()
+        self.displayBox.setLayout(display)
+
         self.parametersBox = QGroupBox(self.tr('Classifier Parameters'))
         parameters = self.widgetClassifierParameters()
         self.parametersBox.setLayout(parameters)
@@ -219,6 +245,7 @@ class WindowUI():
         vbox = QVBoxLayout()
         vbox.addWidget(preprocessBox)
         vbox.addWidget(detectBox)
+        vbox.addWidget(self.displayBox)
         vbox.addWidget(self.parametersBox)
         return vbox
 

@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Sun Jul 20 21:44:36 2014 (+0200)
+# Last-Updated: Tue Jul 22 13:37:09 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 1642
+#     Update #: 1830
 #
 
 import sys
@@ -102,9 +102,16 @@ class Window(QWidget, WindowUI):
     SHAPE_RECT = 'Rectangle'
     SHAPE_ELLIPSE = 'Ellipse'
 
+    FILL_TRANSPARENT = 'Transparent'
+    FILL_COLOR = 'Color'
+    FILL_BLUR = 'Blur'
+    FILL_IMAGE = 'Image'
+    FILL_MASK = 'Mask'
+
     __sourceModes = [SOURCE_IMAGE, SOURCE_VIDEO, SOURCE_CAMERA]
     __displayModes = [DISPLAY_INPUT, DISPLAY_PREPROCESSED]
     __shapeModes = [SHAPE_RECT, SHAPE_ELLIPSE]
+    __fillModes = [FILL_TRANSPARENT, FILL_BLUR, FILL_IMAGE, FILL_MASK, FILL_COLOR]
 
     debugSignal = QtCore.pyqtSignal(object, int)
 
@@ -139,6 +146,8 @@ class Window(QWidget, WindowUI):
             self.displayCBox.addItem(displayMode)
         for shapeMode in self.__shapeModes:
             self.shapeCBox.addItem(shapeMode)
+        for fillMode in self.__fillModes:
+            self.fillCBox.addItem(fillMode)
         model = QtGui.QStandardItemModel(self)
         func = lambda node, parent: self.populateTree(node, parent)
         Detector.getDefaultObjectsTree().map(model, func)
@@ -161,12 +170,17 @@ class Window(QWidget, WindowUI):
         self.minWidth.valueChanged.connect(self.updateMinWidth)
         self.minHeight.valueChanged.connect(self.updateMinHeight)
         self.shapeCBox.currentIndexChanged.connect(self.updateShape)
-        self.blur.stateChanged.connect(self.updateBlur)
+        self.fillCBox.currentIndexChanged.connect(self.updateFill)
         self.autoNeighbors.clicked.connect(self.calcNeighbors)
+        self.stabilize.stateChanged.connect(self.updateStabilize)
+        self.tracking.stateChanged.connect(self.updateTracking)
+        self.showName.stateChanged.connect(self.updateShowName)
+        self.fillPath.clicked.connect(self.loadFillPath)
 
     def initUI(self):
         self.showClassifierParameters(None, None)
         self.equalizeHist.setChecked(True)
+        self.toggleFillPath()
 
     ########################################################
     # Utils
@@ -180,54 +194,106 @@ class Window(QWidget, WindowUI):
 
     def populateTree(self, node, parent):
         item = QtGui.QStandardItem(node)
-        item.setData(hash(item))
         h, s, v = Detector.getDefaultHSVColor(node)
         color = QColor()
         color.setHsvF(h, s, v)
         item.setIcon(self.getIcon(color))
-        self.classifiersParameters[item.data()] = ClassifierParameters(node, node,
-                                                                       color, self.SHAPE_RECT)
+        cp = ClassifierParameters(item.data(), node, node, color,
+                                  self.SHAPE_RECT, self.FILL_TRANSPARENT)
+        key = hash(item)
+        while key in self.classifiersParameters:
+            key += 1
+        item.setData(key)
+        self.classifiersParameters[key] = cp
         parent.appendRow(item)
         return item
 
-    def getBlur(self, pixmap, x, y, w, h, shape):
+    def getMask(self, pixmap, x, y, w, h, shape, overlay,
+                bg=QtCore.Qt.transparent, fg=QtCore.Qt.black):
         mask = QPixmap(pixmap.width(), pixmap.height())
-        mask.fill(QtCore.Qt.transparent);
+        mask.fill(bg)
         painter = QtGui.QPainter(mask)
         path = QtGui.QPainterPath()
         if shape == self.SHAPE_ELLIPSE:
             path.addEllipse(x, y, w, h)
-            painter.fillPath(path, QtGui.QColor(0, 0, 0))
+            painter.fillPath(path, fg)
         elif shape == self.SHAPE_RECT:
-            painter.fillRect(x, y, w, h, QtGui.QColor(0, 0, 0))
+            painter.fillRect(x, y, w, h, fg)
         painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceAtop)
-        painter.drawPixmap(0, 0, common.blurPixmap(pixmap, 20))
+        if overlay:
+            painter.drawPixmap(0, 0, overlay)
         return mask
 
-    def drawRects(self, pixmap, rectsTree, scale):
+    def drawTracking(self, painter, tracking, scale):
+        if not tracking:
+            return
+        hashTable = {}
+        for track in tracking:
+            for rect, hash in track:
+                x, y, w, h = common.scaleRect(rect, scale)
+                x, y = x + w / 2, y + h / 2
+                if hash in hashTable:
+                    hashTable[hash].append((x, y))
+                else:
+                    hashTable[hash] = [(x, y)]
+        for hash, points in hashTable.iteritems():
+            prev = None
+            for point in points:
+                if prev:
+                    x1, y1 = point
+                    x2, y2 = prev
+                    painter.drawLine(x1, y1, x2, y2)
+                prev = point
+
+    def drawRects(self, source, rectsTree, scale):
         """Draw rectangles in 'rectsTree' on 'pixmap'.
         """
-        painter = QtGui.QPainter(pixmap)
-
-        def drawRect(node, parentRoi):
-            roi, param = node.data
+        pixmap = QPixmap(source)
+        def drawRect(node, arg):
+            painter = QtGui.QPainter(pixmap)
+            roi, param, tracking = node.data
             x, y, w, h = common.scaleRect(roi, scale)
-            cx, cy, cw, ch = parentRoi
             painter.setPen(param.color)
-            x, y = cx + x, cy + y
-            if param.blur:
-                blurred = self.getBlur(pixmap, x, y, w, h, param.shape)
+            if param.fill == self.FILL_MASK:
+                masked = self.getMask(pixmap, x, y, w, h, param.shape, source)
+                if not arg:
+                    painter.eraseRect(0, 0, pixmap.width(), pixmap.height())
+                    painter.fillRect(0, 0, pixmap.width(), pixmap.height(), QtCore.Qt.transparent)
+                painter.drawPixmap(0, 0, masked)
+            elif param.fill == self.FILL_BLUR:
+                blurred = self.getMask(pixmap, x, y, w, h, param.shape,
+                                       common.blurPixmap(pixmap, 20))
                 painter.drawPixmap(0, 0, blurred)
+            elif param.fill == self.FILL_IMAGE:
+                fillPixmap = QPixmap(param.fillPath)
+                if not fillPixmap.isNull():
+                    fillPixmap = fillPixmap.scaled(w, h, QtCore.Qt.IgnoreAspectRatio)
+                    mask = self.getMask(pixmap, x, y, w, h, param.shape, None,
+                                        QtCore.Qt.white, QtCore.Qt.black)
+                    painter.setClipRegion(QtGui.QRegion(QtGui.QBitmap(mask)))
+                    painter.drawPixmap(x, y, fillPixmap)
+                    painter.setClipping(False)
+            elif param.fill == self.FILL_COLOR:
+                if param.shape == self.SHAPE_ELLIPSE:
+                    path = QtGui.QPainterPath()
+                    path.addEllipse(x, y, w, h)
+                    painter.fillPath(path, param.color)
+                elif param.shape == self.SHAPE_RECT:
+                    painter.fillRect(x, y, w, h, param.color)
             else:
-                painter.drawText(x, y, param.name)
                 drawFunc = painter.drawRect
                 if param.shape == self.SHAPE_ELLIPSE:
                     drawFunc = painter.drawEllipse
                 drawFunc(x, y, w, h)
-            return (x, y, w, h)
+            if param.tracking:
+                self.drawTracking(painter, tracking, scale)
+            if param.showName:
+                painter.drawText(x, y, param.name)
+            return True
 
         h, w = pixmap.height(), pixmap.width()
-        rectsTree.map((0, 0, w, h), drawRect)
+        rectsTree.map(None, drawRect)
+        return pixmap
 
     def debugTable(self, args, append=False):
         """Display debug info into table.
@@ -255,7 +321,7 @@ class Window(QWidget, WindowUI):
         """
         self.debugSignal.emit(args, append)
 
-    def displayImage(self, img, autoNeighbors=False):
+    def displayImage(self, img, autoNeighbors=False, autoNeighborsParam=None):
         """Display numpy 'img' in 'mediaLabel'.
         """
         self.currentFrame = img
@@ -270,7 +336,7 @@ class Window(QWidget, WindowUI):
                                                 item)
         equalizeHist = self.equalizeHist.isChecked()
         rectsTree = self.detector.detect(img, tree, equalizeHist,
-                                         self.debugEmitter, extracted)
+                                         self.debugEmitter, extracted, autoNeighborsParam)
         displayMode = self.__displayModes[self.displayCBox.currentIndex()]
         if displayMode == self.DISPLAY_PREPROCESSED:
             img = self.detector.preprocessed
@@ -280,7 +346,7 @@ class Window(QWidget, WindowUI):
         pixmap = common.fitImageToScreen(pixmap)
         scaleFactor = pixmap.width() / w
         # Draw scaled rectangles
-        self.drawRects(pixmap, rectsTree, scaleFactor)
+        pixmap = self.drawRects(pixmap, rectsTree, scaleFactor)
         self.mediaLabel.setPixmap(pixmap)
         self.mediaLabel.setFixedSize(pixmap.size())
 
@@ -297,7 +363,7 @@ class Window(QWidget, WindowUI):
                 self.displayImage(img)
             elif sourceMode == self.SOURCE_VIDEO or sourceMode == self.SOURCE_CAMERA:
                 self.videoThread.start()
-        except Exception as err:
+        except common.CustomException as err:
             print '[Error]', err
 
     def getSourceMode(self):
@@ -310,6 +376,14 @@ class Window(QWidget, WindowUI):
         item = index.model().itemFromIndex(index)
         param = self.classifiersParameters[item.data()]
         return item, param
+
+    def toggleFillPath(self):
+        index = self.fillCBox.currentIndex()
+        fillMode = self.__fillModes[index]
+        if fillMode == self.FILL_IMAGE:
+            self.fillPath.show()
+        else:
+            self.fillPath.hide()
 
     ########################################################
     # Signals handlers
@@ -327,6 +401,14 @@ class Window(QWidget, WindowUI):
         """Refresh with current media.
         """
         self.displayMedia(self.sourcePath.text())
+
+    def loadFillPath(self):
+        filters = self.tr('Image (*.jpg *.png *.jpeg *.bmp)')
+        path, filters = QFileDialog.getOpenFileName(self, self.tr('Open file'),
+                                                    '.', filters)
+        if path:
+            item, param = self.getCurrentClassifierParameters()
+            param.fillPath = path
 
     def loadMedia(self):
         """Load image or video.
@@ -368,7 +450,8 @@ class Window(QWidget, WindowUI):
         if self.videoThread.isRunning():
             self.videoThread.stop()
         self.videoThread.clean()
-        self.displayImage(self.currentFrame, autoNeighbors=True)
+        self.displayImage(self.currentFrame, autoNeighbors=True,
+                          autoNeighborsParam=self.autoNeighborsParam.value())
         self.showClassifierParameters(None, None)
         self.refresh()
 
@@ -383,6 +466,18 @@ class Window(QWidget, WindowUI):
             item.setIcon(self.getIcon(color))
             param.color = color
 
+    def updateStabilize(self, checked):
+        """Update scale factor classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.stabilize = checked
+
+    def updateTracking(self, checked):
+        """Update tracking classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.tracking = checked
+
     def updateScaleFactor(self, value):
         """Update scale factor classifier parameter.
         """
@@ -395,11 +490,18 @@ class Window(QWidget, WindowUI):
         item, param = self.getCurrentClassifierParameters()
         param.shape = self.__shapeModes[index]
 
-    def updateBlur(self, checked):
-        """Update blur classifier parameter.
+    def updateFill(self, index):
+        """Update fill classifier parameter.
         """
         item, param = self.getCurrentClassifierParameters()
-        param.blur = checked
+        param.fill = self.__fillModes[index]
+        self.toggleFillPath()
+
+    def updateShowName(self, checked):
+        """Update show name classifier parameter.
+        """
+        item, param = self.getCurrentClassifierParameters()
+        param.showName = checked
 
     def updateMinNeighbors(self, value):
         """Update min neighbors classifier parameter.
@@ -426,6 +528,7 @@ class Window(QWidget, WindowUI):
         """
         selectedCount = len(self.objectsTree.selectedIndexes())
         if selectedCount == 1:
+            self.displayBox.setEnabled(True)
             self.parametersBox.setEnabled(True)
             index = self.objectsTree.currentIndex()
             item = index.model().itemFromIndex(index)
@@ -439,8 +542,12 @@ class Window(QWidget, WindowUI):
             self.minWidth.setValue(w)
             self.minHeight.setValue(h)
             self.shapeCBox.setCurrentIndex(self.__shapeModes.index(param.shape))
-            self.blur.setChecked(param.blur)
+            self.fillCBox.setCurrentIndex(self.__fillModes.index(param.fill))
+            self.stabilize.setChecked(param.stabilize)
+            self.showName.setChecked(param.showName)
+            self.tracking.setChecked(param.tracking)
         else:
+            self.displayBox.setEnabled(False)
             self.parametersBox.setEnabled(False)
 
     def addObject(self):

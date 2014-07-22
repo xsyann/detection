@@ -269,15 +269,37 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getBlur"></a><span class="summary-sig-name">getBlur</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="getMask"></a><span class="summary-sig-name">getMask</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">pixmap</span>,
         <span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">y</span>,
         <span class="summary-sig-arg">w</span>,
         <span class="summary-sig-arg">h</span>,
-        <span class="summary-sig-arg">shape</span>)</span></td>
+        <span class="summary-sig-arg">shape</span>,
+        <span class="summary-sig-arg">overlay</span>,
+        <span class="summary-sig-arg">bg</span>=<span class="summary-sig-default">19</span>,
+        <span class="summary-sig-arg">fg</span>=<span class="summary-sig-default">2</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.getBlur">source&nbsp;code</a></span>
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.getMask">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="drawTracking"></a><span class="summary-sig-name">drawTracking</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">painter</span>,
+        <span class="summary-sig-arg">tracking</span>,
+        <span class="summary-sig-arg">scale</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.drawTracking">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -292,7 +314,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="drawRects"></a><span class="summary-sig-name">drawRects</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">source</span>,
         <span class="summary-sig-arg">rectsTree</span>,
         <span class="summary-sig-arg">scale</span>)</span><br />
       Draw rectangles in 'rectsTree' on 'pixmap'.</td>
@@ -351,7 +373,8 @@
         <tr>
           <td><span class="summary-sig"><a name="displayImage"></a><span class="summary-sig-name">displayImage</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">img</span>,
-        <span class="summary-sig-arg">autoNeighbors</span>=<span class="summary-sig-default">False</span>)</span><br />
+        <span class="summary-sig-arg">autoNeighbors</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">autoNeighborsParam</span>=<span class="summary-sig-default">None</span>)</span><br />
       Display numpy 'img' in 'mediaLabel'.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.displayImage">source&nbsp;code</a></span>
@@ -419,6 +442,22 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="toggleFillPath"></a><span class="summary-sig-name">toggleFillPath</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.toggleFillPath">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="normalOutputWritten"></a><span class="summary-sig-name">normalOutputWritten</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">text</span>)</span><br />
       Append text to debug infos.</td>
@@ -441,6 +480,22 @@
       Refresh with current media.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.refresh">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="loadFillPath"></a><span class="summary-sig-name">loadFillPath</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.loadFillPath">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -541,6 +596,42 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="updateStabilize"></a><span class="summary-sig-name">updateStabilize</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">checked</span>)</span><br />
+      Update scale factor classifier parameter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateStabilize">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="updateTracking"></a><span class="summary-sig-name">updateTracking</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">checked</span>)</span><br />
+      Update tracking classifier parameter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateTracking">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="updateScaleFactor"></a><span class="summary-sig-name">updateScaleFactor</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">value</span>)</span><br />
       Update scale factor classifier parameter.</td>
@@ -577,11 +668,29 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="updateBlur"></a><span class="summary-sig-name">updateBlur</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">checked</span>)</span><br />
-      Update blur classifier parameter.</td>
+          <td><span class="summary-sig"><a name="updateFill"></a><span class="summary-sig-name">updateFill</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">index</span>)</span><br />
+      Update fill classifier parameter.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateBlur">source&nbsp;code</a></span>
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateFill">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="updateShowName"></a><span class="summary-sig-name">updateShowName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">checked</span>)</span><br />
+      Update show name classifier parameter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateShowName">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1051,6 +1160,7 @@
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="detection.window_ui.WindowUI-class.html">window_ui.WindowUI</a></code></b>:
       <code><a href="detection.window_ui.WindowUI-class.html#setupUI">setupUI</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetClassifierDisplay">widgetClassifierDisplay</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetClassifierParameters">widgetClassifierParameters</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetDebug">widgetDebug</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetFrame">widgetFrame</a></code>,
@@ -1129,6 +1239,41 @@
         <a name="SHAPE_ELLIPSE"></a><span class="summary-name">SHAPE_ELLIPSE</span> = <code title="'Ellipse'"><code class="variable-quote">'</code><code class="variable-string">Ellipse</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="FILL_TRANSPARENT"></a><span class="summary-name">FILL_TRANSPARENT</span> = <code title="'Transparent'"><code class="variable-quote">'</code><code class="variable-string">Transparent</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="FILL_COLOR"></a><span class="summary-name">FILL_COLOR</span> = <code title="'Color'"><code class="variable-quote">'</code><code class="variable-string">Color</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="FILL_BLUR"></a><span class="summary-name">FILL_BLUR</span> = <code title="'Blur'"><code class="variable-quote">'</code><code class="variable-string">Blur</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="FILL_IMAGE"></a><span class="summary-name">FILL_IMAGE</span> = <code title="'Image'"><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="FILL_MASK"></a><span class="summary-name">FILL_MASK</span> = <code title="'Mask'"><code class="variable-quote">'</code><code class="variable-string">Mask</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -1148,6 +1293,13 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="__shapeModes"></a><span class="summary-name">__shapeModes</span> = <code title="['Rectangle', 'Ellipse']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Rectangle</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ellipse</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__fillModes"></a><span class="summary-name">__fillModes</span> = <code title="['Transparent', 'Blur', 'Image', 'Mask', 'Color']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Transparent</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Blur</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Mask</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Color</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
     </td>
   </tr>
   <tr>
@@ -1275,7 +1427,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sun Jul 20 21:44:46 2014
+    on Tue Jul 22 13:40:20 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

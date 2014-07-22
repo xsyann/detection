@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:11:21 2014 (+0200)
-# Last-Updated: Sun Jul 20 19:48:35 2014 (+0200)
+# Last-Updated: Tue Jul 22 13:32:59 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 106
+#     Update #: 108
 #
 
 import cv2
@@ -18,6 +18,9 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QDesktopWidget, QLabel, QGraphicsBlurEffect, QGraphicsPixmapItem
 
 from tree import Tree
+
+class CustomException(Exception):
+    pass
 
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
@@ -85,7 +88,7 @@ def readImage(path):
     """
     img = None
     if not path:
-        raise Exception, 'File path is empty '
+        raise CustomException, 'File path is empty '
 
     if not os.path.isfile(path):
         try:
@@ -93,11 +96,11 @@ def readImage(path):
             arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
             img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
         except ValueError:
-            raise Exception, 'File not found ' + path
+            raise CustomException, 'File not found ' + path
         except urllib2.HTTPError as err:
-            raise Exception, err
+            raise CustomException, err
     else:
         img = cv2.imread(path)
         if img is None:
-            raise Exception, 'File not recognized ' + path
+            raise CustomException, 'File not recognized ' + path
     return img

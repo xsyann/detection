@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Sun Jul 20 20:55:00 2014 (+0200)
+# Last-Updated: Tue Jul 22 12:05:08 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 378
+#     Update #: 580
 #
 
 import cv2
@@ -15,8 +15,10 @@ import time
 from tree import Tree, Node
 
 class ClassifierParameters:
-    def __init__(self, classifier, name, color, shape, blur=False,
+    def __init__(self, hash, classifier, name, color, shape, fill, fillPath="",
+                 stabilize=False, tracking=False, showName=True,
                  scaleFactor=1.3, minNeighbors=4, minSize=(0, 0)):
+        self.hash = hash
         self.classifier = classifier
         self.shape = shape
         self.name = name
@@ -24,7 +26,11 @@ class ClassifierParameters:
         self.scaleFactor = scaleFactor
         self.minNeighbors = minNeighbors
         self.minSize = minSize
-        self.blur = blur
+        self.fill = fill
+        self.fillPath = fillPath
+        self.stabilize = stabilize
+        self.tracking = tracking
+        self.showName = showName
 
 class Detector(object):
 
@@ -45,6 +51,7 @@ class Detector(object):
     PROFILFACE = 'Profil face'
     DUCKSMALL_LBP = 'Duck small LBP'
     DUCKBIG_LBP = 'Duck big LBP'
+    DUCK_HAAR = 'Duck Haar'
 
     __classifiersPaths = { FACE: 'haarcascades/haarcascade_frontalface_alt.xml',
                            EYE: 'haarcascades/haarcascade_eye.xml',
@@ -63,6 +70,7 @@ class Detector(object):
                            PROFILFACE: 'haarcascades/haarcascade_profileface.xml',
                            DUCKSMALL_LBP: 'haarcascades/duck_25x24.xml',
                            DUCKBIG_LBP: 'haarcascades/duck_50x48.xml',
+                           DUCK_HAAR: 'classifier/cascade.xml'
                            }
 
     @staticmethod
@@ -85,14 +93,89 @@ class Detector(object):
 
     def __init__(self):
         self.preprocessed = None
+        self.stored = {}
 
     def preprocess(self, img, equalizeHist):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return (cv2.equalizeHist(gray) if equalizeHist else gray)
 
-    def detect(self, img, tree, equalizeHist=True, debugTable=None, autoNeighbors=None):
+    def dist(self, a, b):
+        x1, y1, w1, h1 = a
+        x2, y2, w2, h2 = b
+        return np.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2))
 
-        def detectTree(tree, parentRoi, parentName, roiTree):
+    def getDistances(self, rect, rects):
+        distances = []
+        for rectItem in rects:
+            dist = self.dist(rect, rectItem)
+            distances.append((dist, rectItem))
+        distances.sort()
+        return distances
+
+    def retreiveRect(self, rect, current, previous):
+        distances = self.getDistances(rect, current)
+        if not distances:
+            return None
+        nearestDist, nearestRect = distances[0]
+        exclude = []
+        i = 0
+        while i < len(previous):
+            prev, hash = previous[i]
+            if not np.array_equal(prev, rect) and not i in exclude:
+                dist = self.dist(prev, nearestRect)
+                if dist < nearestDist:
+                    exclude.append(i)
+                    del distances[0]
+                    if not distances:
+                        return None
+                    nearestDist, nearestRect = distances[0]
+                    i = 0
+                    continue
+            i += 1
+
+        return nearestRect
+
+    def retreiveRects(self, current, previous):
+        rects, hashs = [], []
+        for i, (previousRect, hash) in enumerate(previous):
+            nearestRect = self.retreiveRect(previousRect, current, previous[i:])
+            if not nearestRect:
+                nearestRect = previousRect
+            else:
+                del current[current.index(nearestRect)]
+            rects.append(nearestRect)
+            hashs.append(hash)
+        return rects, hashs
+
+    def stabilize(self, param, parentHash, rects):
+        key = (param.hash, parentHash)
+        hashs = None
+        if not param.stabilize and not param.tracking:
+            if key in self.stored:
+                del self.stored[key]
+            return None
+        if key in self.stored:
+            prevRects = self.stored[key][-1]
+            rects, hashs = self.retreiveRects(rects, prevRects)
+        else:
+            self.stored[key] = []
+            hashs = [tuple(rect) for rect in rects]
+        if param.tracking:
+            self.stored[key].append(zip(rects, hashs))
+        else:
+            self.stored[key] = [zip(rects, hashs)]
+        return self.stored[key]
+
+    def globalizeCoords(self, rects, parent):
+        for i, roi in enumerate(rects):
+            x, y, w, h = roi
+            x1, y1, w1, h1 = parent
+            rects[i] = (x + x1, y + y1, w, h)
+
+    def detect(self, img, tree, equalizeHist=True, debugTable=None, autoNeighbors=None,
+               autoNeighborsParam=0):
+
+        def detectTree(tree, parentRoi, parentName, parentHash, roiTree):
             """Recursive function to detect objects in the tree.
             """
             x, y, w, h = parentRoi
@@ -106,35 +189,48 @@ class Detector(object):
                         col2 = 'detecting in {}x{} ({})...'.format(w, h, parentName)
                         debugTable([(col1, 200), (col2, 300), ('', 200)])
                         start = time.time()
-                    objRects = self.detectObject(cropped,
+                    rects = self.detectObject(cropped,
                                                  param.classifier,
                                                  param.scaleFactor,
                                                  param.minNeighbors,
                                                  param.minSize,
                                                  cv2.CASCADE_SCALE_IMAGE)
+                    if isinstance(rects, np.ndarray):
+                        rects = rects.tolist()
+
+                    self.globalizeCoords(rects, parentRoi)
+
+                    hashs = None
+                    tracking = None
+                    if not autoNeighbors:
+                        res = self.stabilize(param, parentHash, rects)
+                        if res:
+                            rects, hashs = zip(*res[-1]) if res[-1] else ([], [])
+                            tracking = res[:-1]
 
                     if debugTable and not autoNeighbors:
                         end = time.time()
-                        col = '{} found in {:.2f} s'.format(len(objRects),
+                        col = '{} found in {:.2f} s'.format(len(rects),
                                                         end - start)
                         debugTable([(col, 0)], append=True)
 
-                    if autoNeighbors and node == autoNeighbors and isinstance(objRects, np.ndarray) and objRects.any():
+                    if autoNeighbors and node == autoNeighbors and len(rects) > autoNeighborsParam:
                         param.minNeighbors += 1
                     else:
                         incNeighbors = False
 
-                for roi in objRects:
-                    roiNode = Node(param.classifier, (roi, param))
+                for i, roi in enumerate(rects):
+                    hash = hashs[i] if hashs else None
+                    roiNode = Node(param.classifier, (roi, param, tracking))
                     roiTree[roiNode]
                     name = parentName + ' > ' + param.name
-                    detectTree(children, roi, name, roiTree[roiNode])
+                    detectTree(children, roi, name, hash, roiTree[roiNode])
 
         img = self.preprocess(img, equalizeHist)
         self.preprocessed = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         h, w = img.shape[:2]
         roiTree = Tree()
-        detectTree(tree, (0, 0, w, h), 'Root', roiTree)
+        detectTree(tree, (0, 0, w, h), 'Root', None, roiTree)
         return roiTree
 
     def detectObject(self, img, obj, scaleFactor, minNeighbors, minSize, flags):
