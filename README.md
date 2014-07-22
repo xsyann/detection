@@ -58,8 +58,8 @@ Hierarchize the tree by dragging classifiers.
 
 ### References
 
-http://note.sonots.com/SciSoftware/haartraining.html
-http://coding-robin.de/2013/07/22/train-your-own-opencv-haar-classifier.html
-http://docs.opencv.org/modules/objdetect/doc/cascade_classification.html
-http://makematics.com/research/viola-jones/
-http://docs.opencv.org/trunk/doc/py_tutorials/py_objdetect/py_face_detection/py_face_detection.html
+* http://note.sonots.com/SciSoftware/haartraining.html
+* http://coding-robin.de/2013/07/22/train-your-own-opencv-haar-classifier.html
+* http://docs.opencv.org/modules/objdetect/doc/cascade_classification.html
+* http://makematics.com/research/viola-jones/
+* http://docs.opencv.org/trunk/doc/py_tutorials/py_objdetect/py_face_detection/py_face_detection.html
