@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:06:25 2014 (+0200)
-# Last-Updated: Tue Jul 22 11:57:03 2014 (+0200)
+# Last-Updated: Wed Jul 23 21:16:01 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 250
+#     Update #: 382
 #
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -39,24 +39,52 @@ class WindowUI():
 
         self.sourceCBox = QComboBox(self)
         self.sourcePath = QLineEdit(self)
+        self.sourcePath.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
+#        self.sourcePath.setMinimumWidth(400)
         self.sourcePathButton = QPushButton('...')
+        self.sourcePathButton.setMaximumWidth(40)
 
+        self.playButton = QPushButton('')
+        self.nextFrameButton = QPushButton('')
         self.refreshButton = QPushButton('')
-        self.refreshButton.setIcon(QIcon('assets/refresh.png'))
-        self.refreshButton.setIconSize(QtCore.QSize(20, 20))
-        self.refreshButton.setMinimumSize(QtCore.QSize(20, 20))
-        self.refreshButton.setMaximumSize(QtCore.QSize(20, 20))
+
         css = "QPushButton { border: none; }" \
-            "QPushButton:pressed { border: 1px solid gray; background-color: #aaa; }"
+            "QPushButton:pressed { border: 1px solid #555; background-color: #222; }"
+
+        size = QtCore.QSize(23, 23)
+
+        self.playButton.setIcon(QIcon('assets/pause.png'))
+        self.playButton.setIconSize(size)
+        self.playButton.setMinimumSize(size)
+        self.playButton.setMaximumSize(size)
+        self.playButton.setStyleSheet(css)
+
+        self.refreshButton.setIcon(QIcon('assets/refresh.png'))
+        self.refreshButton.setIconSize(size)
+        self.refreshButton.setMinimumSize(size)
+        self.refreshButton.setMaximumSize(size)
         self.refreshButton.setStyleSheet(css)
 
+
+        self.nextFrameButton.setIcon(QIcon('assets/next.png'))
+        self.nextFrameButton.setIconSize(size)
+        self.nextFrameButton.setMinimumSize(size)
+        self.nextFrameButton.setMaximumSize(size)
+        self.nextFrameButton.setStyleSheet(css)
+
         self.sourceCBox.setCurrentIndex(0)
+
+        controlsHbox = QHBoxLayout()
+        controlsHbox.addWidget(self.playButton)
+        controlsHbox.addWidget(self.nextFrameButton)
+        controlsHbox.addWidget(self.refreshButton)
+        controlsHbox.setAlignment(QtCore.Qt.AlignRight)
 
         hbox.addWidget(sourceLabel)
         hbox.addWidget(self.sourceCBox)
         hbox.addWidget(self.sourcePath)
         hbox.addWidget(self.sourcePathButton)
-        hbox.addWidget(self.refreshButton)
+        hbox.addLayout(controlsHbox)
         hbox.setAlignment(QtCore.Qt.AlignLeft)
         return hbox
 
@@ -118,12 +146,12 @@ class WindowUI():
     def widgetClassifierDisplay(self):
         """Create classifier display widget.
         """
-        color = QtGui.QColor(0, 0, 0)
         self.colorPicker = QPushButton('')
         self.colorPicker.setMaximumSize(QtCore.QSize(16, 16))
         self.shapeCBox = QComboBox(self)
         self.fillCBox = QComboBox(self)
         self.fillPath = QPushButton('...')
+        self.fillPath.setMaximumWidth(40)
         self.showName = QCheckBox(self.tr('Show Name'))
 
         hbox = QHBoxLayout()
@@ -207,14 +235,23 @@ class WindowUI():
         vbox.addLayout(hparameters)
         return vbox
 
-    def widgetPreprocess(self):
-        """Create classifier parameters widget.
+    def widgetGlobalParam(self):
+        """Create global parameters widget.
         """
         hbox = QHBoxLayout()
         self.displayCBox = QComboBox(self)
+        self.bgCBox = QComboBox(self)
+        self.bgColorPicker = QPushButton('')
+        self.bgColorPicker.setMaximumSize(QtCore.QSize(16, 16))
+        self.bgPathButton = QPushButton('...')
+        self.bgPathButton.setMaximumWidth(45)
         hbox.addWidget(QLabel(self.tr('Display')))
         hbox.addWidget(self.displayCBox)
         hbox.addStretch(1)
+        hbox.addWidget(QLabel(self.tr('Background')))
+        hbox.addWidget(self.bgCBox)
+        hbox.addWidget(self.bgColorPicker)
+        hbox.addWidget(self.bgPathButton)
 
         self.equalizeHist = QCheckBox(self.tr('Equalize histogram'))
 
@@ -226,9 +263,9 @@ class WindowUI():
     def widgetParameters(self):
         """Create parameters widget.
         """
-        preprocessBox = QGroupBox(self.tr('Pre-processing'))
-        objects = self.widgetPreprocess()
-        preprocessBox.setLayout(objects)
+        globalParamBox = QGroupBox(self.tr('Global parameters'))
+        objects = self.widgetGlobalParam()
+        globalParamBox.setLayout(objects)
 
         detectBox = QGroupBox(self.tr('Detect'))
         objects = self.widgetObjectList()
@@ -243,7 +280,7 @@ class WindowUI():
         self.parametersBox.setLayout(parameters)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(preprocessBox)
+        vbox.addWidget(globalParamBox)
         vbox.addWidget(detectBox)
         vbox.addWidget(self.displayBox)
         vbox.addWidget(self.parametersBox)
@@ -253,8 +290,6 @@ class WindowUI():
         """Create debug infos widget.
         """
         self.debugText = QTextEdit(self)
-        css = "QTextEdit { background-color: #FFF; color: #222; }"
-        self.debugText.setStyleSheet(css)
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         self.showDetails = QPushButton(self.tr('Details >>>'))

@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:11:21 2014 (+0200)
-# Last-Updated: Tue Jul 22 15:01:01 2014 (+0200)
+# Last-Updated: Wed Jul 23 17:26:56 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 110
+#     Update #: 144
 #
 
 import cv2
@@ -30,18 +30,32 @@ class EmittingStream(QtCore.QObject):
 def setPickerColor(color, colorPicker):
     """Set the color picker color.
     """
-    css = 'QWidget { background-color: %s; border-width: 1px; \
+    css = 'QWidget { background-color: %s; border-width: 0; \
         border-radius: 2px; border-color: #555; border-style: outset; }'
     colorPicker.setStyleSheet(css % color.name())
 
-def np2Qt(imageBGR):
+def checkerboard(size):
+    """Create a checkboard.
+    """
+    h, w = size.height(), size.width()
+    c0 = (191, 191, 191, 255)
+    c1 = (255, 255, 255, 255)
+    blocksize = 8
+    coords = np.ogrid[0:h,0:w]
+    idx = (coords[0] // blocksize + coords[1] // blocksize) % 2
+    vals = np.array([c0, c1], dtype=np.uint8)
+    return np2Qt(vals[idx])
+
+def np2Qt(image):
     """Convert numpy array to QPixmap.
     """
-    height, width = imageBGR.shape[:2]
-    bytesPerLine = 3 * width
+    height, width, bytesPerComponent = image.shape
+    bytesPerLine = 4 * width
 
-    qimg = QImage(imageBGR.data, width, height,
-                  bytesPerLine, QImage.Format_RGB888).rgbSwapped()
+    if bytesPerComponent == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2RGBA)
+    qimg = QImage(image.data, width, height,
+                  bytesPerLine, QImage.Format_ARGB32)
     return QPixmap.fromImage(qimg)
 
 def fitImageToScreen(pixmap):

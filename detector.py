@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Tue Jul 22 19:10:11 2014 (+0200)
+# Last-Updated: Wed Jul 23 20:46:54 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 608
+#     Update #: 640
 #
 
 import cv2
@@ -49,9 +49,10 @@ class Detector(object):
     RIGHTEAR = 'Right ear'
     MOUTH = 'Mouth'
     PROFILFACE = 'Profil face'
-    DUCKSMALL_LBP = 'Duck small LBP'
-    DUCKBIG_LBP = 'Duck big LBP'
-    DUCK_HAAR = 'Duck Haar'
+    DUCK = 'Duck'
+    COKE = 'Coke'
+    KEY = 'Key'
+    PEN = 'Pen'
 
     __classifiersPaths = { FACE: 'haarcascades/haarcascade_frontalface_alt.xml',
                            EYE: 'haarcascades/haarcascade_eye.xml',
@@ -68,9 +69,10 @@ class Detector(object):
                            RIGHTEAR: 'haarcascades/haarcascade_mcs_rightear.xml',
                            MOUTH: 'haarcascades/haarcascade_mcs_mouth.xml',
                            PROFILFACE: 'haarcascades/haarcascade_profileface.xml',
-                           DUCKSMALL_LBP: 'haarcascades/duck_25x24.xml',
-                           DUCKBIG_LBP: 'haarcascades/duck_50x48.xml',
-                           DUCK_HAAR: 'classifier/cascade.xml'
+                           DUCK: 'haarcascades/duck_25x24.xml',
+                           COKE: 'haarcascades/coke16x49.xml',
+                           KEY: 'haarcascades/key50x20.xml',
+                           PEN: 'haarcascades/haarcascade_pen.xml'
                            }
 
     @staticmethod
@@ -102,6 +104,8 @@ class Detector(object):
     def dist(self, a, b):
         x1, y1, w1, h1 = a
         x2, y2, w2, h2 = b
+        x1, y1 = x1 + w1 / 2, y1 + h1 / 2
+        x2, y2 = x2 + w2 / 2, y2 + h2 / 2
         return np.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2))
 
     def getNearest(self, rect, rects):

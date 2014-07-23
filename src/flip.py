@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Sun Jul 20 15:13:51 2014 (+0200)
-# Last-Updated: Sun Jul 20 15:32:45 2014 (+0200)
+# Last-Updated: Wed Jul 23 10:04:03 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 24
+#     Update #: 26
 #
 
 import os
@@ -28,7 +28,7 @@ def main():
         name = fn + "-flipped" + ext
         cv2.imshow("flipped", flipped)
         print name
-#        cv2.imwrite(name, flipped)
+        cv2.imwrite(name, flipped)
 
 if __name__ == '__main__':
     main()

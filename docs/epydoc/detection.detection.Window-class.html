@@ -253,7 +253,8 @@
         <tr>
           <td><span class="summary-sig"><a name="populateTree"></a><span class="summary-sig-name">populateTree</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">node</span>,
-        <span class="summary-sig-arg">parent</span>)</span></td>
+        <span class="summary-sig-arg">parent</span>)</span><br />
+      Create a QTreeView node under 'parent'.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.populateTree">source&nbsp;code</a></span>
             
@@ -278,7 +279,8 @@
         <span class="summary-sig-arg">shape</span>,
         <span class="summary-sig-arg">overlay</span>,
         <span class="summary-sig-arg">bg</span>=<span class="summary-sig-default">19</span>,
-        <span class="summary-sig-arg">fg</span>=<span class="summary-sig-default">2</span>)</span></td>
+        <span class="summary-sig-arg">fg</span>=<span class="summary-sig-default">2</span>)</span><br />
+      Create a shape mask with the same size of pixmap.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.getMask">source&nbsp;code</a></span>
             
@@ -297,9 +299,138 @@
           <td><span class="summary-sig"><a name="drawTracking"></a><span class="summary-sig-name">drawTracking</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">painter</span>,
         <span class="summary-sig-arg">tracking</span>,
-        <span class="summary-sig-arg">scale</span>)</span></td>
+        <span class="summary-sig-arg">scale</span>)</span><br />
+      Draw lines between each position in tracking list.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.drawTracking">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="drawBackground"></a><span class="summary-sig-name">drawBackground</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>)</span><br />
+      Draw background in pixmap.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.drawBackground">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fillMask"></a><span class="summary-sig-name">fillMask</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">painter</span>,
+        <span class="summary-sig-arg">roi</span>,
+        <span class="summary-sig-arg">param</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Draw mask in roi.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.fillMask">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fillBlur"></a><span class="summary-sig-name">fillBlur</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">painter</span>,
+        <span class="summary-sig-arg">roi</span>,
+        <span class="summary-sig-arg">param</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Draw blur in roi.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.fillBlur">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fillImage"></a><span class="summary-sig-name">fillImage</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">painter</span>,
+        <span class="summary-sig-arg">roi</span>,
+        <span class="summary-sig-arg">param</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Draw image in roi.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.fillImage">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fillColor"></a><span class="summary-sig-name">fillColor</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">painter</span>,
+        <span class="summary-sig-arg">roi</span>,
+        <span class="summary-sig-arg">param</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Draw color in roi.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.fillColor">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fillOutline"></a><span class="summary-sig-name">fillOutline</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixmap</span>,
+        <span class="summary-sig-arg">painter</span>,
+        <span class="summary-sig-arg">roi</span>,
+        <span class="summary-sig-arg">param</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Draw outline in roi.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.fillOutline">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -317,7 +448,7 @@
         <span class="summary-sig-arg">source</span>,
         <span class="summary-sig-arg">rectsTree</span>,
         <span class="summary-sig-arg">scale</span>)</span><br />
-      Draw rectangles in 'rectsTree' on 'pixmap'.</td>
+      Draw rectangles in 'rectsTree' on 'source'.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.drawRects">source&nbsp;code</a></span>
             
@@ -371,10 +502,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="displayImage"></a><span class="summary-sig-name">displayImage</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="detect"></a><span class="summary-sig-name">detect</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">img</span>,
         <span class="summary-sig-arg">autoNeighbors</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">autoNeighborsParam</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Detect objects in img.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.detect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="displayImage"></a><span class="summary-sig-name">displayImage</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">img</span>)</span><br />
       Display numpy 'img' in 'mediaLabel'.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.displayImage">source&nbsp;code</a></span>
@@ -426,7 +575,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getCurrentClassifierParameters"></a><span class="summary-sig-name">getCurrentClassifierParameters</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="getCurrentClassifierParameters"></a><span class="summary-sig-name">getCurrentClassifierParameters</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return current classifier parameters.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.getCurrentClassifierParameters">source&nbsp;code</a></span>
             
@@ -442,9 +592,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="toggleFillPath"></a><span class="summary-sig-name">toggleFillPath</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="toggleFillPath"></a><span class="summary-sig-name">toggleFillPath</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Display fill path dialog button if needed.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.toggleFillPath">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="togglePlayButton"></a><span class="summary-sig-name">togglePlayButton</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">play</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Switch between play and pause icons.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.togglePlayButton">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -476,8 +645,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="play"></a><span class="summary-sig-name">play</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Play current media.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.play">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="refresh"></a><span class="summary-sig-name">refresh</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Refresh with current media.</td>
+      Refresh current media.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.refresh">source&nbsp;code</a></span>
             
@@ -493,7 +679,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="loadFillPath"></a><span class="summary-sig-name">loadFillPath</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="nextFrame"></a><span class="summary-sig-name">nextFrame</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Go to next frame of current media.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.nextFrame">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="loadFillPath"></a><span class="summary-sig-name">loadFillPath</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Display file dialog to choose fill image.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.loadFillPath">source&nbsp;code</a></span>
             
@@ -561,7 +765,60 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="calcNeighbors"></a><span class="summary-sig-name">calcNeighbors</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="bgColorDialog"></a><span class="summary-sig-name">bgColorDialog</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Open color dialog to pick a color.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.bgColorDialog">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bgPathDialog"></a><span class="summary-sig-name">bgPathDialog</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Open file dialog to select background image.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.bgPathDialog">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="toggleBgParams"></a><span class="summary-sig-name">toggleBgParams</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">index</span>)</span><br />
+      Hide / Show color picker and button path for background.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="detection.detection-pysrc.html#Window.toggleBgParams">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="calcNeighbors"></a><span class="summary-sig-name">calcNeighbors</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Automatically calculate minimum neighbors.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.calcNeighbors">source&nbsp;code</a></span>
             
@@ -598,7 +855,7 @@
         <tr>
           <td><span class="summary-sig"><a name="updateStabilize"></a><span class="summary-sig-name">updateStabilize</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">checked</span>)</span><br />
-      Update scale factor classifier parameter.</td>
+      Update stabilize classifier parameter.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="detection.detection-pysrc.html#Window.updateStabilize">source&nbsp;code</a></span>
             
@@ -1164,9 +1421,9 @@
       <code><a href="detection.window_ui.WindowUI-class.html#widgetClassifierParameters">widgetClassifierParameters</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetDebug">widgetDebug</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetFrame">widgetFrame</a></code>,
+      <code><a href="detection.window_ui.WindowUI-class.html#widgetGlobalParam">widgetGlobalParam</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetObjectList">widgetObjectList</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetParameters">widgetParameters</a></code>,
-      <code><a href="detection.window_ui.WindowUI-class.html#widgetPreprocess">widgetPreprocess</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetSource">widgetSource</a></code>,
       <code><a href="detection.window_ui.WindowUI-class.html#widgetTree">widgetTree</a></code>
       </p>
@@ -1236,7 +1493,14 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="FILL_TRANSPARENT"></a><span class="summary-name">FILL_TRANSPARENT</span> = <code title="'Transparent'"><code class="variable-quote">'</code><code class="variable-string">Transparent</code><code class="variable-quote">'</code></code>
+        <a name="FILL_NONE"></a><span class="summary-name">FILL_NONE</span> = <code title="'None'"><code class="variable-quote">'</code><code class="variable-string">None</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="FILL_OUTLINE"></a><span class="summary-name">FILL_OUTLINE</span> = <code title="'Outline'"><code class="variable-quote">'</code><code class="variable-string">Outline</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
@@ -1267,6 +1531,34 @@
         <a name="FILL_MASK"></a><span class="summary-name">FILL_MASK</span> = <code title="'Mask'"><code class="variable-quote">'</code><code class="variable-string">Mask</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="BG_INPUT"></a><span class="summary-name">BG_INPUT</span> = <code title="'Input'"><code class="variable-quote">'</code><code class="variable-string">Input</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="BG_COLOR"></a><span class="summary-name">BG_COLOR</span> = <code title="'Color'"><code class="variable-quote">'</code><code class="variable-string">Color</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="BG_TRANSPARENT"></a><span class="summary-name">BG_TRANSPARENT</span> = <code title="'Transparent'"><code class="variable-quote">'</code><code class="variable-string">Transparent</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="BG_IMAGE"></a><span class="summary-name">BG_IMAGE</span> = <code title="'Image'"><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -1292,7 +1584,28 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__fillModes"></a><span class="summary-name">__fillModes</span> = <code title="['Transparent', 'Blur', 'Image', 'Mask', 'Color']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Transparent</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Blur</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Mask</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Color</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+        <a href="detection.detection.Window-class.html#__fillModes" class="summary-name" onclick="show_private();">__fillModes</a> = <code title="['None', 'Outline', 'Blur', 'Image', 'Mask', 'Color']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">None</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Outline</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Blur</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Mask</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Co</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__bgModes"></a><span class="summary-name">__bgModes</span> = <code title="['Input', 'Color', 'Transparent', 'Image']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Input</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Color</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Transparent</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="IMAGE_FILTERS"></a><span class="summary-name">IMAGE_FILTERS</span> = <code title="'*.jpg *.png *.jpeg *.bmp'"><code class="variable-quote">'</code><code class="variable-string">*.jpg *.png *.jpeg *.bmp</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VIDEO_FILTERS"></a><span class="summary-name">VIDEO_FILTERS</span> = <code title="'*.avi *.mp4 *.mov'"><code class="variable-quote">'</code><code class="variable-string">*.avi *.mp4 *.mov</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
   <tr>
@@ -1388,6 +1701,43 @@
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__fillModes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">__fillModes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">None</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Outline</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Blur</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Image</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Mask</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Color</code><code class="variable-quote">'</code><code class="variable-group">]</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -1420,7 +1770,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Tue Jul 22 20:51:44 2014
+    on Wed Jul 23 23:45:18 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

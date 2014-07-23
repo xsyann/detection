@@ -57,6 +57,7 @@ docs/_build/
 *~
 tex/
 illum/
+test/
 classifier
 positives*
 samples*
