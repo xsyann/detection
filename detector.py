@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Tue Jul 15 17:48:25 2014 (+0200)
-# Last-Updated: Wed Jul 23 20:46:54 2014 (+0200)
+# Last-Updated: Thu Jul 24 14:02:35 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 640
+#     Update #: 698
 #
 
 import cv2
@@ -62,7 +62,7 @@ class Detector(object):
                            SMILE: 'haarcascades/haarcascade_smile.xml',
                            NOSE: 'haarcascades/haarcascade_mcs_nose.xml',
                            LEFTEYE: 'haarcascades/haarcascade_mcs_lefteye.xml',
-                           RIGHTEYE: 'haarcascades/haarcascade_mcs_right.xml',
+                           RIGHTEYE: 'haarcascades/haarcascade_mcs_righteye.xml',
                            EYEPAIRBIG: 'haarcascades/haarcascade_mcs_eyepair_small.xml',
                            EYEPAIRSMALL: 'haarcascades/haarcascade_mcs_eyepair_big.xml',
                            LEFTEAR: 'haarcascades/haarcascade_mcs_leftear.xml',
@@ -96,6 +96,7 @@ class Detector(object):
     def __init__(self):
         self.preprocessed = None
         self.stored = {}
+        self.swapMap = {}
 
     def preprocess(self, img, equalizeHist):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -177,10 +178,10 @@ class Detector(object):
             x, y, w, h = parentRoi
             cropped = img[y:y+h, x:x+w]
             for node, children in tree.iteritems():
-                param = node.data
+                selected, param = node.data
                 incNeighbors = True
                 while incNeighbors:
-                    if debugTable and not autoNeighbors:
+                    if debugTable and not autoNeighbors and selected:
                         col1 = '{} ({})'.format(param.classifier, param.name)
                         col2 = 'detecting in {}x{} ({})...'.format(w, h, parentName)
                         debugTable([(col1, 200), (col2, 300), ('', 200)])
@@ -204,7 +205,7 @@ class Detector(object):
                             rects, hashs = zip(*res[-1]) if res[-1] else ([], [])
                             tracking = res[:-1]
 
-                    if debugTable and not autoNeighbors:
+                    if debugTable and not autoNeighbors and selected:
                         end = time.time()
                         col = '{} found in {:.2f} s'.format(len(rects),
                                                         end - start)

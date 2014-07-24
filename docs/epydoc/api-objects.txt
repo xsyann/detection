@@ -156,6 +156,7 @@ detection.detection.Window.initUI	detection.detection.Window-class.html#initUI
 detection.detection.Window.keyPressEvent	detection.detection.Window-class.html#keyPressEvent
 detection.detection.Window.colorDialog	detection.detection.Window-class.html#colorDialog
 detection.detection.Window.play	detection.detection.Window-class.html#play
+detection.detection.Window.MASK_PATH	detection.detection.Window-class.html#MASK_PATH
 detection.detection.Window.FILL_COLOR	detection.detection.Window-class.html#FILL_COLOR
 detection.detection.Window.updateStabilize	detection.detection.Window-class.html#updateStabilize
 detection.detection.Window.FILL_IMAGE	detection.detection.Window-class.html#FILL_IMAGE

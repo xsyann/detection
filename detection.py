@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Mon Jul 14 13:51:02 2014 (+0200)
-# Last-Updated: Wed Jul 23 22:29:30 2014 (+0200)
+# Last-Updated: Thu Jul 24 13:50:06 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 2104
+#     Update #: 2186
 #
 
 import sys
@@ -36,6 +36,7 @@ class MediaThread(QtCore.QThread):
         self.capture = None
         self.nextFrame = False
         self.mutex = QtCore.QMutex()
+        self.mode = None
 
     def stop(self):
         """Stop media thread.
@@ -56,8 +57,10 @@ class MediaThread(QtCore.QThread):
     def main(self, mode, path):
         """Main loop.
         """
-        if not self.capture or not self.capture.isOpened():
+        if not self.capture or not self.capture.isOpened() or self.mode != mode:
             self.capture = cv2.VideoCapture(path)
+
+        self.mode = mode
 
         if not self.capture.isOpened():
             print "Couldn't read media " + path
@@ -66,8 +69,8 @@ class MediaThread(QtCore.QThread):
                 break
             ret, frame = self.capture.read()
             if frame is None:
-                self.capture = cv2.VideoCapture(path)
-                ret, frame = self.capture.read()
+                #self.capture = cv2.VideoCapture(path)
+                #ret, frame = self.capture.read()
                 if frame is None:
                     break
             if mode == self.mw.SOURCE_CAMERA:
@@ -124,6 +127,7 @@ class Window(QWidget, WindowUI):
 
     IMAGE_FILTERS = '*.jpg *.png *.jpeg *.bmp'
     VIDEO_FILTERS = '*.avi *.mp4 *.mov'
+    MASK_PATH = 'other/mask.png'
 
     debugSignal = QtCore.pyqtSignal(object, int)
 
@@ -236,18 +240,30 @@ class Window(QWidget, WindowUI):
         return item
 
     def getMask(self, pixmap, x, y, w, h, shape, overlay,
-                bg=QtCore.Qt.transparent, fg=QtCore.Qt.black):
+                bg=QtCore.Qt.transparent, fg=QtCore.Qt.black, progressive=False):
         """Create a shape mask with the same size of pixmap.
         """
         mask = QPixmap(pixmap.width(), pixmap.height())
         mask.fill(bg)
-        painter = QtGui.QPainter(mask)
         path = QtGui.QPainterPath()
+
+        if progressive:
+            progressive = QPixmap(pixmap.width(), pixmap.height())
+            progressive.fill(QtCore.Qt.transparent)
+            progressiveMask = QPixmap(self.MASK_PATH)
+            progressiveMask = progressiveMask.scaled(w, h, QtCore.Qt.IgnoreAspectRatio)
+            progressivePainter = QtGui.QPainter(progressive)
+            progressivePainter.drawPixmap(x, y, progressiveMask)
+            del progressivePainter
+            fg = QtGui.QBrush(progressive)
+
+        painter = QtGui.QPainter(mask)
         if shape == self.SHAPE_ELLIPSE:
             path.addEllipse(x, y, w, h)
             painter.fillPath(path, fg)
         elif shape == self.SHAPE_RECT:
             painter.fillRect(x, y, w, h, fg)
+
         painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceAtop)
         if overlay:
             painter.drawPixmap(0, 0, overlay)
@@ -301,7 +317,8 @@ class Window(QWidget, WindowUI):
         """Draw mask in roi.
         """
         x, y, w, h = roi
-        masked = self.getMask(pixmap, x, y, w, h, param.shape, source)
+        masked = self.getMask(pixmap, x, y, w, h, param.shape,
+                              source, progressive=True)
         painter.drawPixmap(0, 0, masked)
 
     def fillBlur(self, pixmap, painter, roi, param, source):
@@ -352,7 +369,7 @@ class Window(QWidget, WindowUI):
         pixmap = QPixmap(source)
         self.drawBackground(pixmap)
 
-        def drawRect(node, arg):
+        def drawRect(node, parentHash):
             painter = QtGui.QPainter(pixmap)
             roi, param, tracking = node.data
             x, y, w, h = common.scaleRect(roi, scale)
@@ -371,7 +388,7 @@ class Window(QWidget, WindowUI):
                 self.drawTracking(painter, tracking, scale)
             if param.showName:
                 painter.drawText(x, y, param.name)
-            return True
+            return param.hash
 
         h, w = pixmap.height(), pixmap.width()
         rectsTree.map(None, drawRect)
@@ -409,14 +426,13 @@ class Window(QWidget, WindowUI):
         """
         self.currentFrame = img
         item = None
-        if autoNeighbors:
-            indexes = self.objectsTree.selectedIndexes()
-            if indexes:
-                item = self.objectsTree.model().itemFromIndex(indexes[0])
+        indexes = self.objectsTree.selectedIndexes()
+        if autoNeighbors and indexes:
+            item = self.objectsTree.model().itemFromIndex(indexes[0])
         # Detect on full size image
         tree, extracted = common.getObjectsTree(self.objectsTree,
                                                 self.classifiersParameters,
-                                                item)
+                                                indexes, item)
         equalizeHist = self.equalizeHist.isChecked()
         rectsTree = self.detector.detect(img, tree, equalizeHist,
                                          self.debugEmitter, extracted, autoNeighborsParam)
@@ -591,10 +607,18 @@ class Window(QWidget, WindowUI):
     def calcNeighbors(self):
         """Automatically calculate minimum neighbors.
         """
+        running = False
+        if self.mediaThread.isRunning():
+            running = True
+            self.mediaThread.stop()
+            self.mediaThread.wait()
         self.detect(self.currentFrame, autoNeighbors=True,
                     autoNeighborsParam=self.autoNeighborsParam.value())
         self.showClassifierParameters(None, None)
-        self.displayImage(self.currentFrame)
+        if running:
+            self.displayMedia(self.sourcePath.text())
+        else:
+            self.displayImage(self.currentFrame)
 
     def updateClassifierParameters(self, name=None, color=None):
         """Update classifier parameters.
@@ -610,10 +634,18 @@ class Window(QWidget, WindowUI):
     def updateStabilize(self, checked):
         """Update stabilize classifier parameter.
         """
+        running = False
+        if self.mediaThread.isRunning():
+            running = True
+            self.mediaThread.stop()
+            self.mediaThread.wait()
         item, param = self.getCurrentClassifierParameters()
         param.stabilize = checked
         self.detect(self.currentFrame)
-        self.displayImage(self.currentFrame)
+        if running:
+            self.displayMedia(self.sourcePath.text())
+        else:
+            self.displayImage(self.currentFrame)
 
     def updateTracking(self, checked):
         """Update tracking classifier parameter.
@@ -758,6 +790,7 @@ def main():
     QApplication.addLibraryPath(QApplication.applicationDirPath() + "/../PlugIns")
     main = Window()
     main.setWindowTitle('Detection')
+    main.setWindowIcon(QtGui.QIcon('assets/icon.png'))
     main.show()
     try:
         sys.exit(app.exec_())

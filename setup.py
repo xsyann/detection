@@ -51,7 +51,7 @@ if __name__ == "__main__":
         name=NAME,
         version=VERSION,
         author="Yann KOETH",
-        data_file=[ICON],
+        data_files=[ICON],
         **extra_options
         )
     if platform == "darwin":

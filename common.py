@@ -4,9 +4,9 @@
 #
 # Author: Yann KOETH
 # Created: Wed Jul 16 19:11:21 2014 (+0200)
-# Last-Updated: Wed Jul 23 17:26:56 2014 (+0200)
+# Last-Updated: Thu Jul 24 10:33:48 2014 (+0200)
 #           By: Yann KOETH
-#     Update #: 144
+#     Update #: 148
 #
 
 import cv2
@@ -87,10 +87,10 @@ def scaleRect(rect, scale):
     x, y, w, h = rect
     return (x * scale, y * scale, w * scale, h * scale)
 
-def getObjectsTree(qTreeView, table, extract):
+def getObjectsTree(qTreeView, table, indexes, extract):
     """Create an object tree representation from QTreeView.
     """
     tree = Tree()
     model = qTreeView.model()
-    extracted = tree.fromQStandardItemModel(model, table, extract)
+    extracted = tree.fromQStandardItemModel(model, table, indexes, extract)
     return tree, extracted
