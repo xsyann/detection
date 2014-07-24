@@ -74,7 +74,7 @@ La méthode de Viola et Jones consiste à entrainer une fonction à reconnaitre 
 **Entrainement**
 
 L’algorithme d’entrainement nécessite une importante quantité d’images positives (contenant l’objet) et négatives (ne contenant pas l’objet). Le but est d'extraire des caractéristiques à partir de ces images.
-Les caractéristiques, appelée caractéristique pseudo-Haar, représentent la différence de sommes de pixels de plusieurs zones rectangulaires adjacentes.
+Les caractéristiques, appelées caractéristiques pseudo-Haar, représentent la différence de sommes de pixels de plusieurs zones rectangulaires adjacentes.
 
 Voici les types de base de caractéristiques utilisés par OpenCV :
 
@@ -116,6 +116,7 @@ Ainsi pour une caractéristique à deux rectangles il suffit d’accéder à seu
 Une fenêtre de détection de petite taille est définie (par exemple 20x20). La cascade de classifieurs détecte si un objet est présent dans cette zone. À chaque itération la fenêtre de détection est décalé d’un pixel (ou plus), afin de balayer toute l’image. Une fois balayée, la fenêtre de détection est agrandie (ou l’image réduite, suivant l’implémentation), et le processus est recommencé afin de tester des zones de toutes tailles.
 
 Le fait de tester des zones de toutes tailles et positions induit le fait que le même objet peut être détecté dans plusieurs zones. Les zones se chevauchant sont regroupées en une zone "moyenne".
+Il est possible de définir un nombre minimal de zones se chevauchant au-dessus duquel l'objet est considéré comme détecté, afin d'éliminer les faux positifs.
 
 http://vimeo.com/12774628
 
